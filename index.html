@@ -55,16 +55,14 @@
             transform: translateY(-2px);
         }
 
-        /* Active state for remove button */
         #removeItemsButton.active {
-            background-color: #dc3545; /* Red color when active */
-            box-shadow: 0 0 15px rgba(220, 53, 69, 0.7); /* Glow effect */
+            background-color: #dc3545;
+            box-shadow: 0 0 15px rgba(220, 53, 69, 0.7);
         }
 
-        /* Active state for info button (if needed, though it just opens modal) */
         #infoButton.active {
-            background-color: #61dafb; /* Blue color when active */
-            box-shadow: 0 0 15px rgba(97, 218, 251, 0.7); /* Glow effect */
+            background-color: #61dafb;
+            box-shadow: 0 0 15px rgba(97, 218, 251, 0.7);
         }
 
         .control-button svg {
@@ -174,10 +172,10 @@
             font-size: 1.1em;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             transition: background-color 0.3s ease, transform 0.2s ease;
-            display: flex; /* Use flexbox for icon and text alignment */
+            display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px; /* Space between icon and text */
+            gap: 10px;
         }
 
         #sideMenu button:hover {
@@ -196,14 +194,13 @@
             z-index: 1400;
         }
 
-        /* Context Menu Styles */
         #contextMenu {
-            display: none; /* Hidden by default */
+            display: none;
             position: absolute;
             background-color: #3a3f47;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-            z-index: 2100; /* Above everything */
+            z-index: 2100;
             padding: 5px 0;
             min-width: 150px;
         }
@@ -218,14 +215,14 @@
             cursor: pointer;
             font-size: 1em;
             transition: background-color 0.2s ease;
-            border-radius: 0; /* Remove border-radius for individual items */
-            box-shadow: none; /* Remove box-shadow for individual items */
-            margin-bottom: 0; /* Remove margin-bottom */
+            border-radius: 0;
+            box-shadow: none;
+            margin-bottom: 0;
         }
 
         #contextMenu button:hover {
             background-color: #5a5f68;
-            transform: none; /* No transform on hover for menu items */
+            transform: none;
         }
 
         #uploadChoiceModal .modal-content {
@@ -251,17 +248,96 @@
             background-color: #4dc1e8;
             transform: translateY(-2px);
         }
+
+        #quantityModal .modal-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        #quantityModal input[type="number"] {
+            width: 80%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #5a5f68;
+            background-color: #282c34;
+            color: #e0e0e0;
+            font-size: 1em;
+            text-align: center;
+        }
+
+        #quantityModal button {
+            background-color: #61dafb;
+            color: #282c34;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            width: 80%;
+        }
+
+        #quantityModal button:hover {
+            background-color: #4dc1e8;
+            transform: translateY(-2px);
+        }
+
+        /* Custom Tooltip Styles */
+        #customTooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            pointer-events: none; /* Allow clicks to pass through */
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 2500; /* Above all other UI elements */
+            white-space: nowrap;
+        }
+
+        #customTooltip.show {
+            opacity: 1;
+        }
+
+        /* Custom Message Box Styles */
+        #messageBox {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #61dafb;
+            color: #282c34;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            font-size: 1.1em;
+            font-weight: bold;
+            text-align: center;
+            z-index: 3000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        #messageBox.show {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
     <div id="controlsContainer">
-        <button id="addItemsButton" class="control-button" aria-label="Add Items">
+        <button id="addItemsButton" class="control-button" aria-label="Add Items" data-tooltip="Open Add Objects Menu">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
         </button>
-        <button id="removeItemsButton" class="control-button" aria-label="Remove Items">
+        <button id="removeItemsButton" class="control-button" aria-label="Remove Items" data-tooltip="Toggle Object Removal Mode">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -270,16 +346,14 @@
                 <path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
         </button>
-        <!-- Info button moved to the left of the three-dot menu -->
-        <button id="infoButton" class="control-button" aria-label="Simulator Information">
+        <button id="infoButton" class="control-button" aria-label="Simulator Information" data-tooltip="View Simulator Information">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M12 16V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M12 8H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
         </button>
-        <!-- Three-dot menu (now Controls Menu) -->
-        <button id="menuButton" class="control-button" aria-label="Controls Menu">
+        <button id="menuButton" class="control-button" aria-label="Controls Menu" data-tooltip="View Simulator Controls">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="12" cy="5" r="2" fill="currentColor"/>
                 <circle cx="12" cy="12" r="2" fill="currentColor"/>
@@ -290,7 +364,6 @@
 
     <canvas id="physicsCanvas"></canvas>
 
-    <!-- Controls Modal -->
     <div id="controlsModal" class="modal">
         <div class="modal-content">
             <span class="close-button" id="closeModalBtn">&times;</span>
@@ -298,13 +371,13 @@
             <p><strong>Mouse Drag:</strong> Rotate the camera around the simulation.</p>
             <p><strong>Mouse Wheel:</strong> Zoom in and out.</p>
             <p><strong>Add Items Button:</strong> Click the '+' icon to open the Add Objects menu.</p>
+            <p><strong>Right-Click on Add Item:</strong> Right-click an item in the Add Objects menu to specify how many to add.</p>
             <p><strong>Remove Items Button:</strong> Click the trash can icon to enter removal mode. Hover over objects to see a red outline, then click to remove them.</p>
             <p><strong>Add Human Button:</strong> Click the 'Add Human' button in the Add Objects menu to spawn a non-controllable humanoid.</p>
-            <p><strong>Right-Click:</strong> Open a context menu to clear all objects or save the scene state.</p>
+            <p><strong>Right-Click Canvas:</strong> Open a context menu to clear all objects or save the scene state.</p>
         </div>
     </div>
 
-    <!-- Made by Gemini Modal -->
     <div id="geminiModal" class="modal">
         <div class="modal-content">
             <span class="close-button" id="closeGeminiModalBtn">&times;</span>
@@ -315,13 +388,21 @@
         </div>
     </div>
 
-    <!-- Upload Choice Modal -->
     <div id="uploadChoiceModal" class="modal">
         <div class="modal-content">
             <span class="close-button" id="closeUploadChoiceModalBtn">&times;</span>
             <h2>Choose Upload Type</h2>
-            <button id="uploadSaveFileBtn">Upload Save File (.json)</button>
-            <button id="import3DModelBtn">Import 3D Model (.gltf, .glb)</button>
+            <button id="uploadSaveFileBtn" data-tooltip="Load a previously saved scene">Upload Save File (.json)</button>
+            <button id="import3DModelBtn" data-tooltip="Import a custom 3D model">Import 3D Model (.gltf, .glb)</button>
+        </div>
+    </div>
+
+    <div id="quantityModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeQuantityModalBtn">&times;</span>
+            <h2>How many do you want to add?</h2>
+            <input type="number" id="quantityInput" value="1" min="1" max="50">
+            <button id="addQuantityBtn">Add to Scene</button>
         </div>
     </div>
 
@@ -329,19 +410,19 @@
     <div id="sideMenu">
         <span class="close-button" id="closeSideMenuBtn">&times;</span>
         <h2>Add Objects</h2>
-        <button id="addSphereBtn">
+        <button id="addSphereBtn" data-object-type="sphere" data-tooltip="Add a single sphere (Left-Click) or multiple (Right-Click)">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
             </svg>
             Add Sphere
         </button>
-        <button id="addBoxBtn">
+        <button id="addBoxBtn" data-object-type="box" data-tooltip="Add a single box (Left-Click) or multiple (Right-Click)">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
             </svg>
             Add Box
         </button>
-        <button id="addCylinderBtn">
+        <button id="addCylinderBtn" data-object-type="cylinder" data-tooltip="Add a single cylinder (Left-Click) or multiple (Right-Click)">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <ellipse cx="12" cy="5" rx="8" ry="3" stroke="currentColor" stroke-width="2"/>
                 <ellipse cx="12" cy="19" rx="8" ry="3" stroke="currentColor" stroke-width="2"/>
@@ -350,7 +431,7 @@
             </svg>
             Add Cylinder
         </button>
-        <button id="addHumanBtn">
+        <button id="addHumanBtn" data-object-type="human" data-tooltip="Add a single human (Left-Click) or multiple (Right-Click)">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 2C10.8954 2 10 2.89543 10 4C10 5.10457 10.8954 6 12 6C13.1046 6 14 5.10457 14 4C14 2.89543 13.1046 2 12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M12 7V14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -359,7 +440,7 @@
             </svg>
             Add Human
         </button>
-        <button id="upload3dBtn">
+        <button id="upload3dBtn" data-tooltip="Upload a 3D model or scene file">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 16V8M9 13L12 16L15 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M19 17V17C19 18.6569 17.6569 20 16 20H8C6.34315 20 5 18.6569 5 17V17C5 15.3431 6.34315 14 8 14H16C17.6569 14 19 15.3431 19 17Z" stroke="currentColor" stroke-width="2"/>
@@ -368,52 +449,48 @@
         </button>
     </div>
 
-    <!-- Right-Click Context Menu -->
     <div id="contextMenu">
-        <button id="clearAllObjectsBtn">Clear All Objects</button>
-        <button id="saveAs3DModelBtn">Save Scene State (.json)</button>
+        <button id="clearAllObjectsBtn" data-tooltip="Remove all objects from the scene">Clear All Objects</button>
+        <button id="saveAs3DModelBtn" data-tooltip="Save the current scene as a JSON file">Save Scene State (.json)</button>
     </div>
 
-    <!-- Hidden file input for 3D model upload -->
     <input type="file" id="fileInput" style="display: none;">
+
+    <div id="customTooltip" class="tooltip"></div>
+    <div id="messageBox"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
-    <!-- GLTFLoader for Three.js -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
     <script>
-        // Global variables for Three.js and Cannon.js
         let scene, camera, renderer;
         let world;
-        let meshes = []; // Array to hold Three.js meshes
-        let bodies = []; // Array to hold Cannon.js bodies
+        let meshes = [];
+        let bodies = [];
 
-        // Mouse control variables for camera movement
         let isDragging = false;
         let previousMouseX = 0;
         let previousMouseY = 0;
-        let cameraTarget = new THREE.Vector3(0, 2, 0); // The point the camera looks at
-        let cameraDistance = 15; // Initial distance from the target
-        let phi = Math.PI * 0.4; // Vertical angle (polar coordinate)
-        let theta = Math.PI * 0.2; // Horizontal angle (azimuthal coordinate)
+        let cameraTarget = new THREE.Vector3(0, 2, 0);
+        let cameraDistance = 15;
+        let phi = Math.PI * 0.4;
+        let theta = Math.PI * 0.2;
 
-        // Raycasting for object interaction
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
         let highlightedObject = null;
-        const originalMaterials = new Map(); // Store original materials using mesh.uuid as key
-        const highlightMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000, emissive: 0x330000 }); // Red highlight
+        const originalMaterials = new Map();
+        const highlightMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000, emissive: 0x330000 });
 
-        // UI elements (declared globally but assigned in init)
         let controlsModal;
         let closeModalBtn;
         let geminiModal;
         let closeGeminiModalBtn;
-        let uploadChoiceModal; // New upload choice modal
-        let closeUploadChoiceModalBtn; // Close button for upload choice modal
-        let uploadSaveFileBtn; // Button to upload save file
-        let import3DModelBtn; // Button to import 3D model
+        let uploadChoiceModal;
+        let closeUploadChoiceModalBtn;
+        let uploadSaveFileBtn;
+        let import3DModelBtn;
         let menuButton;
         let addItemsButton;
         let removeItemsButton;
@@ -429,22 +506,36 @@
         let contextMenu;
         let clearAllObjectsBtn;
         let saveAs3DModelBtn;
-        let fileInput; // Reference to the hidden file input
+        let fileInput;
 
-        // Mode flags
+        let quantityModal;
+        let closeQuantityModalBtn;
+        let quantityInput;
+        let addQuantityBtn;
+        let currentObjectTypeToAdd = '';
+
         let removeModeActive = false;
+
+        const MAX_OBJECTS = 50;
+
+        let customTooltip;
+        let tooltipTimeout;
+        let currentHoveredMesh = null;
+        let meshHoverTimer = null;
+
+        let messageBox;
+        let messageBoxTimeout;
 
         function init() {
             try {
-                // --- UI element references (MUST be done first) ---
                 controlsModal = document.getElementById('controlsModal');
                 closeModalBtn = document.getElementById('closeModalBtn');
                 geminiModal = document.getElementById('geminiModal');
                 closeGeminiModalBtn = document.getElementById('closeGeminiModalBtn');
-                uploadChoiceModal = document.getElementById('uploadChoiceModal'); // Get new modal
-                closeUploadChoiceModalBtn = document.getElementById('closeUploadChoiceModalBtn'); // Get close button
-                uploadSaveFileBtn = document.getElementById('uploadSaveFileBtn'); // Get save file button
-                import3DModelBtn = document.getElementById('import3DModelBtn'); // Get import 3D model button
+                uploadChoiceModal = document.getElementById('uploadChoiceModal');
+                closeUploadChoiceModalBtn = document.getElementById('closeUploadChoiceModalBtn');
+                uploadSaveFileBtn = document.getElementById('uploadSaveFileBtn');
+                import3DModelBtn = document.getElementById('import3DModelBtn');
                 menuButton = document.getElementById('menuButton');
                 addItemsButton = document.getElementById('addItemsButton');
                 removeItemsButton = document.getElementById('removeItemsButton');
@@ -460,9 +551,18 @@
                 contextMenu = document.getElementById('contextMenu');
                 clearAllObjectsBtn = document.getElementById('clearAllObjectsBtn');
                 saveAs3DModelBtn = document.getElementById('saveAs3DModelBtn');
-                fileInput = document.getElementById('fileInput'); // Get reference to the hidden file input
+                fileInput = document.getElementById('fileInput');
 
-                // Ensure all modals are hidden on load
+                quantityModal = document.getElementById('quantityModal');
+                closeQuantityModalBtn = document.getElementById('closeQuantityModalBtn');
+                quantityInput = document.getElementById('quantityInput');
+                addQuantityBtn = document.getElementById('addQuantityBtn');
+
+                customTooltip = document.getElementById('customTooltip');
+                messageBox = document.getElementById('messageBox');
+
+                quantityInput.setAttribute('max', MAX_OBJECTS);
+
                 hideAllMenus();
 
                 scene = new THREE.Scene();
@@ -481,20 +581,16 @@
                 world.broadphase = new CANNON.NaiveBroadphase();
                 world.solver.iterations = 10;
 
-                // --- Ground Plane ---
-                // Three.js ground mesh (visual representation)
                 const groundGeometry = new THREE.PlaneGeometry(50, 50);
                 const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x666666, side: THREE.DoubleSide });
                 const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
-                groundMesh.rotation.x = -Math.PI / 2; // Rotate to be horizontal
-                groundMesh.receiveShadow = true; // Allow ground to receive shadows
+                groundMesh.rotation.x = -Math.PI / 2;
+                groundMesh.receiveShadow = true;
                 scene.add(groundMesh);
 
-                // Cannon.js ground body (physics representation) - now a finite box
-                const groundBoxHalfExtentsPhysics = new CANNON.Vec3(25, 0.1, 25); // Half-extents: width, thickness, depth
+                const groundBoxHalfExtentsPhysics = new CANNON.Vec3(25, 0.1, 25);
                 const groundPhysicsShape = new CANNON.Box(groundBoxHalfExtentsPhysics);
                 const groundPhysicsBody = new CANNON.Body({ mass: 0, shape: groundPhysicsShape });
-                // Position its top surface at Y=0 (assuming visual plane is at Y=0)
                 groundPhysicsBody.position.set(0, -groundBoxHalfExtentsPhysics.y, 0);
                 world.addBody(groundPhysicsBody);
 
@@ -518,13 +614,11 @@
                 renderer.shadowMap.enabled = true;
                 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-                // Initial objects
                 createObject('sphere', 5);
                 createObject('box', 3);
                 createObject('cylinder', 2);
                 createObject('human', 1);
 
-                // Event listeners for canvas interaction
                 canvas.addEventListener('mousedown', onMouseDown, false);
                 canvas.addEventListener('mouseup', onMouseUp, false);
                 canvas.addEventListener('mousemove', onMouseMove, false);
@@ -534,7 +628,6 @@
 
                 window.addEventListener('resize', onWindowResize, false);
 
-                // UI event listeners
                 infoButton.addEventListener('click', () => {
                     hideAllMenus();
                     geminiModal.style.display = 'flex';
@@ -546,7 +639,8 @@
 
                 closeModalBtn.addEventListener('click', () => { controlsModal.style.display = 'none'; });
                 closeGeminiModalBtn.addEventListener('click', () => { geminiModal.style.display = 'none'; });
-                closeUploadChoiceModalBtn.addEventListener('click', () => { uploadChoiceModal.style.display = 'none'; }); // Close upload choice modal
+                closeUploadChoiceModalBtn.addEventListener('click', () => { uploadChoiceModal.style.display = 'none'; });
+                closeQuantityModalBtn.addEventListener('click', () => { quantityModal.style.display = 'none'; });
 
                 window.addEventListener('click', (event) => {
                     if (event.target == controlsModal) {
@@ -555,8 +649,11 @@
                     if (event.target == geminiModal) {
                         geminiModal.style.display = 'none';
                     }
-                    if (event.target == uploadChoiceModal) { // Close upload choice modal if clicking outside
+                    if (event.target == uploadChoiceModal) {
                         uploadChoiceModal.style.display = 'none';
+                    }
+                    if (event.target == quantityModal) {
+                        quantityModal.style.display = 'none';
                     }
                 });
 
@@ -574,44 +671,66 @@
                     sideMenuOverlay.style.display = 'none';
                 });
 
-                addSphereBtn.addEventListener('click', () => {
-                    createObject('sphere', 1);
-                    sideMenu.classList.remove('open');
-                    sideMenuOverlay.style.display = 'none';
+                const addButtons = [addSphereBtn, addBoxBtn, addCylinderBtn, addHumanBtn];
+                addButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const objectType = button.dataset.objectType; // Corrected from object-type
+                        if (meshes.length >= MAX_OBJECTS) {
+                            showMessage(`Unable to add any more objects. Maximum objects allowed is ${MAX_OBJECTS}.`);
+                            return;
+                        }
+                        createObject(objectType, 1);
+                        sideMenu.classList.remove('open');
+                        sideMenuOverlay.style.display = 'none';
+                    });
+
+                    button.addEventListener('contextmenu', (event) => {
+                        event.preventDefault();
+                        currentObjectTypeToAdd = button.dataset.objectType; // Corrected from object-type
+                        hideAllMenus();
+                        quantityInput.value = 1;
+                        quantityModal.style.display = 'flex';
+                    });
                 });
-                addBoxBtn.addEventListener('click', () => {
-                    createObject('box', 1);
-                    sideMenu.classList.remove('open');
-                    sideMenuOverlay.style.display = 'none';
-                });
-                addCylinderBtn.addEventListener('click', () => {
-                    createObject('cylinder', 1);
-                    sideMenu.classList.remove('open');
-                    sideMenuOverlay.style.display = 'none';
-                });
-                addHumanBtn.addEventListener('click', () => {
-                    createObject('human', 1);
+
+                addQuantityBtn.addEventListener('click', () => {
+                    console.log("Add Quantity Button clicked.");
+                    const quantity = parseInt(quantityInput.value, 10);
+                    console.log("Requested quantity:", quantity);
+                    console.log("Current object type to add:", currentObjectTypeToAdd);
+
+                    if (isNaN(quantity) || quantity <= 0) {
+                        showMessage("Please enter a valid positive number for quantity.");
+                        return;
+                    }
+                    if (meshes.length + quantity > MAX_OBJECTS) {
+                        showMessage(`Unable to add any more objects in bulk, try adding them one by one.`);
+                        return;
+                    }
+                    for (let i = 0; i < quantity; i++) {
+                        createObject(currentObjectTypeToAdd, 1); // Pass 1 as count, as we are iterating
+                    }
+                    quantityModal.style.display = 'none';
                     sideMenu.classList.remove('open');
                     sideMenuOverlay.style.display = 'none';
                 });
 
-                // --- Upload 3D Button now opens the choice modal ---
+
                 upload3dBtn.addEventListener('click', () => {
                     hideAllMenus();
                     uploadChoiceModal.style.display = 'flex';
                 });
 
-                // Event listeners for the new upload choice buttons
                 uploadSaveFileBtn.addEventListener('click', () => {
-                    fileInput.accept = '.json'; // Set accept to JSON files
+                    fileInput.accept = '.json';
                     fileInput.click();
-                    uploadChoiceModal.style.display = 'none'; // Hide choice modal
+                    uploadChoiceModal.style.display = 'none';
                 });
 
                 import3DModelBtn.addEventListener('click', () => {
-                    fileInput.accept = '.gltf, .glb'; // Set accept to GLTF/GLB files
+                    fileInput.accept = '.gltf, .glb';
                     fileInput.click();
-                    uploadChoiceModal.style.display = 'none'; // Hide choice modal
+                    uploadChoiceModal.style.display = 'none';
                 });
 
                 fileInput.addEventListener('change', handleFileUpload);
@@ -634,6 +753,15 @@
                     }
                 });
 
+                document.querySelectorAll('button').forEach(button => {
+                    if (button.dataset.tooltip) {
+                        button.addEventListener('mouseover', (event) => {
+                            showTooltip(button.dataset.tooltip, event.clientX, event.clientY);
+                        });
+                        button.addEventListener('mouseout', hideTooltip);
+                    }
+                });
+
                 console.log("Simulator initialized successfully.");
 
             } catch (error) {
@@ -641,12 +769,6 @@
             }
         }
 
-        /**
-         * Handles uploaded files.
-         * For .json files, it attempts to load a scene state.
-         * For .gltf/.glb files, it attempts to load a 3D model.
-         * @param {Event} event - The change event from the file input.
-         */
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) {
@@ -664,12 +786,12 @@
                         console.log("Loaded scene state from JSON file.");
                     } catch (error) {
                         console.error("Error parsing JSON file:", error);
-                        alert("Error loading JSON scene state. Please ensure it's a valid scene state file.");
+                        showMessage("Error loading JSON scene state. Please ensure it's a valid scene state file.");
                     }
                 };
                 reader.onerror = (e) => {
                     console.error("Error reading file:", e);
-                    alert("Error reading file. Please try again.");
+                    showMessage("Error reading file. Please try again.");
                 };
                 reader.readAsText(file);
             } else if (fileName.endsWith('.gltf') || fileName.endsWith('.glb')) {
@@ -678,546 +800,413 @@
                     try {
                         const loader = new THREE.GLTFLoader();
                         loader.parse(e.target.result, '', (gltf) => {
-                            clearAllObjects(); // Clear existing objects before loading new model
+                            clearAllObjects();
                             const model = gltf.scene;
 
-                            // Calculate bounding box to center and scale the model
                             const box = new THREE.Box3().setFromObject(model);
                             const size = box.getSize(new THREE.Vector3());
                             const center = box.getCenter(new THREE.Vector3());
 
-                            // Normalize model size to fit within a reasonable range (e.g., max dimension 5 units)
                             const maxDim = Math.max(size.x, size.y, size.z);
                             const scale = 5 / maxDim;
                             model.scale.set(scale, scale, scale);
 
-                            // Recalculate box and center after scaling
                             box.setFromObject(model);
                             center.copy(box.getCenter(new THREE.Vector3()));
 
-                            // Adjust position so the model rests on the ground (Y=0)
-                            // Assuming ground is at Y=0 and model's lowest point should be there
-                            model.position.y -= center.y - (box.min.y - model.position.y); // Adjust to sit on ground
-                            model.position.x -= center.x; // Center horizontally
-                            model.position.z -= center.z; // Center depth-wise
+                            model.position.y -= center.y - (box.min.y - model.position.y);
+                            model.position.x -= center.x;
+                            model.position.z -= center.z;
 
-                            // Give the model a random initial height above ground
                             model.position.y += 5 + Math.random() * 5;
 
                             model.traverse((child) => {
                                 if (child.isMesh) {
                                     child.castShadow = true;
                                     child.receiveShadow = true;
-                                    // Ensure material is suitable for lighting
-                                    if (child.material.isMeshStandardMaterial || child.material.isMeshPhysicalMaterial) {
-                                        // Keep as is
-                                    } else {
-                                        // Convert to a basic Lambert material if not PBR, to interact with lights
-                                        child.material = new THREE.MeshLambertMaterial({
-                                            color: child.material.color || new THREE.Color(0xcccccc),
-                                            map: child.material.map,
-                                            // Copy other properties if needed
-                                        });
+                                    if (!(child.material.isMeshStandardMaterial || child.material.isMeshPhysicalMaterial)) {
+                                        child.material = new THREE.MeshLambertMaterial({ color: child.material.color || 0xcccccc });
                                     }
                                 }
                             });
 
-                            scene.add(model);
-                            meshes.push(model);
+                            model.userData = { name: 'Custom 3D Model' };
 
-                            // Create a simplified Cannon.js body for the imported model
-                            // Using a bounding box for physics approximation
-                            const physicsBoxSize = new CANNON.Vec3(size.x * scale / 2, size.y * scale / 2, size.z * scale / 2);
-                            const body = new CANNON.Body({ mass: 10, shape: new CANNON.Box(physicsBoxSize) });
-                            body.position.copy(model.position);
-                            body.quaternion.copy(model.quaternion); // Initial orientation
-                            world.addBody(body);
-                            bodies.push(body);
-
-                            console.log("Loaded 3D model:", gltf);
-                            alert("3D model loaded successfully!");
+                            const modelPhysicsShape = createPhysicsShapeFromMesh(model);
+                            if (modelPhysicsShape) {
+                                const modelPhysicsBody = new CANNON.Body({ mass: 1, shape: modelPhysicsShape });
+                                modelPhysicsBody.position.copy(model.position);
+                                world.addBody(modelPhysicsBody);
+                                bodies.push(modelPhysicsBody);
+                                meshes.push(model);
+                                scene.add(model);
+                                console.log("Loaded 3D model from GLTF/GLB file.");
+                            } else {
+                                console.warn("Could not create a physics body for the loaded 3D model.");
+                                scene.add(model);
+                                meshes.push(model);
+                                showMessage("Loaded 3D model, but could not create a precise physics body for it. It might not interact correctly with physics.");
+                            }
 
                         }, undefined, (error) => {
                             console.error("Error loading GLTF/GLB model:", error);
-                            alert("Error loading 3D model. Please ensure it's a valid .gltf or .glb file.");
+                            showMessage("Error loading 3D model. Please ensure it's a valid GLTF/GLB file.");
                         });
                     } catch (error) {
-                        console.error("Error processing GLTF/GLB file:", error);
-                        alert("Error processing 3D model file. See console for details.");
+                        console.error("Error parsing GLTF/GLB file:", error);
+                        showMessage("Error loading 3D model. Please ensure it's a valid GLTF/GLB file.");
                     }
                 };
                 reader.onerror = (e) => {
                     console.error("Error reading file:", e);
-                    alert("Error reading file. Please try again.");
+                    showMessage("Error reading file. Please try again.");
                 };
-                reader.readAsArrayBuffer(file); // Read as ArrayBuffer for GLTF/GLB
+                reader.readAsArrayBuffer(file);
             } else {
-                alert(`Unsupported file type: ${file.type}. Please select a .json, .gltf, or .glb file.`);
-                console.log("Unsupported file content:", file.name);
+                showMessage("Unsupported file type. Please upload a .json, .gltf, or .glb file.");
             }
-            // Clear the file input value to allow re-uploading the same file
             event.target.value = '';
         }
 
-        /**
-         * Loads a scene state from a given data array.
-         * Clears current scene and adds objects based on the data.
-         * @param {Array<Object>} sceneData - An array of object data (type, position, quaternion).
-         */
-        function loadSceneState(sceneData) {
-            clearAllObjects(); // Clear existing objects before loading new ones
-
-            sceneData.forEach(objData => {
-                let mesh;
-                let body;
-                const mass = 1; // Default mass for loaded objects
-                const color = new THREE.Color(Math.random(), Math.random(), Math.random());
-                const material = new THREE.MeshLambertMaterial({ color: color });
-
-                const position = new CANNON.Vec3(objData.position.x, objData.position.y, objData.position.z);
-                const quaternion = new CANNON.Quaternion(objData.quaternion.x, objData.quaternion.y, objData.quaternion.z, objData.quaternion.w);
-
-                switch (objData.type) {
-                    case 'sphere':
-                        const sphereRadius = 1;
-                        mesh = new THREE.Mesh(new THREE.SphereGeometry(sphereRadius, 32, 32), material);
-                        body = new CANNON.Body({ mass: mass, shape: new CANNON.Sphere(sphereRadius) });
-                        break;
-                    case 'box':
-                        const boxSize = 2;
-                        mesh = new THREE.Mesh(new THREE.BoxGeometry(boxSize, boxSize, boxSize), material);
-                        body = new CANNON.Body({ mass: mass, shape: new CANNON.Box(new CANNON.Vec3(boxSize / 2, boxSize / 2, boxSize / 2)) });
-                        break;
-                    case 'cylinder':
-                        const cylinderRadiusTop = 1;
-                        const cylinderRadiusBottom = 1;
-                        const cylinderHeight = 2;
-                        const cylinderSegments = 32;
-                        mesh = new THREE.Mesh(new THREE.CylinderGeometry(cylinderRadiusTop, cylinderRadiusBottom, cylinderHeight, cylinderSegments), material);
-                        body = new CANNON.Body({ mass: mass, shape: new CANNON.Cylinder(cylinderRadiusTop, cylinderRadiusBottom, cylinderHeight, cylinderSegments) });
-                        break;
-                    case 'human':
-                        const humanHeight = 3;
-                        const humanRadius = 0.5;
-                        const humanMass = 5;
-
-                        const humanBodyGeometry = new THREE.CylinderGeometry(humanRadius, humanRadius, humanHeight - humanRadius * 2, 32);
-                        const humanHeadGeometry = new THREE.SphereGeometry(humanRadius, 32, 32);
-                        const humanBodyMaterial = new THREE.MeshLambertMaterial({ color: color });
-                        const humanHeadMaterial = new THREE.MeshLambertMaterial({ color: new THREE.Color(Math.random(), Math.random(), Math.random()) });
-
-                        const humanBodyMesh = new THREE.Mesh(humanBodyGeometry, humanBodyMaterial);
-                        const humanHeadMesh = new THREE.Mesh(humanHeadGeometry, humanHeadMaterial);
-
-                        humanHeadMesh.position.y = (humanHeight / 2) - humanRadius + (humanRadius / 2);
-                        humanBodyMesh.position.y = (humanRadius - humanHeight / 2);
-
-                        mesh = new THREE.Group();
-                        mesh.add(humanBodyMesh);
-                        mesh.add(humanHeadMesh);
-                        mesh.castShadow = true;
-
-                        const humanCapsuleShape = new CANNON.Cylinder(humanRadius, humanRadius, humanHeight, 32);
-                        body = new CANNON.Body({ mass: humanMass, shape: humanCapsuleShape });
-                        break;
-                    default:
-                        console.warn("Unknown object type in loaded data:", objData.type);
-                        return; // Skip unknown types
-                }
-
-                mesh.castShadow = true;
-                scene.add(mesh);
-                meshes.push(mesh);
-                if (mesh.isGroup) {
-                    mesh.children.forEach(child => {
-                        originalMaterials.set(child.uuid, child.material);
-                    });
-                } else {
-                    originalMaterials.set(mesh.uuid, material);
-                }
-
-                body.position.copy(position);
-                body.quaternion.copy(quaternion);
-                world.addBody(body);
-                bodies.push(body);
-            });
+        function createPhysicsShapeFromMesh(mesh) {
+            const box = new THREE.Box3().setFromObject(mesh);
+            const size = box.getSize(new THREE.Vector3());
+            const halfExtents = new CANNON.Vec3(size.x / 2, size.y / 2, size.z / 2);
+            return new CANNON.Box(halfExtents);
         }
 
-
-        /**
-         * Hides all active UI menus/modals.
-         */
-        function hideAllMenus() {
-            // Check if elements are defined before trying to access their style property
-            if (controlsModal) controlsModal.style.display = 'none';
-            if (geminiModal) geminiModal.style.display = 'none';
-            if (uploadChoiceModal) uploadChoiceModal.style.display = 'none'; // Hide the new modal
-            if (sideMenu) sideMenu.classList.remove('open');
-            if (sideMenuOverlay) sideMenuOverlay.style.display = 'none';
-            if (contextMenu) contextMenu.style.display = 'none';
-            // IMPORTANT: Do NOT call toggleRemoveMode() here. It should only be called by its button.
-            // If removeModeActive is true and we're just hiding other menus, keep removeModeActive true.
-        }
-
-        /**
-         * Toggles the remove objects mode.
-         */
-        function toggleRemoveMode() {
-            removeModeActive = !removeModeActive;
-            if (removeModeActive) {
-                removeItemsButton.classList.add('active');
-                // When activating remove mode, hide other menus, but don't re-toggle removeModeActive
-                if (sideMenu.classList.contains('open')) {
-                    sideMenu.classList.remove('open');
-                    sideMenuOverlay.style.display = 'none';
-                }
-                if (controlsModal.style.display === 'flex') {
-                    controlsModal.style.display = 'none';
-                }
-                if (geminiModal.style.display === 'flex') {
-                    geminiModal.style.display = 'none';
-                }
-                if (uploadChoiceModal.style.display === 'flex') { // Hide upload choice modal
-                    uploadChoiceModal.style.display = 'none';
-                }
-                if (contextMenu.style.display === 'block') {
-                    contextMenu.style.display = 'none';
-                }
-
-            } else {
-                removeItemsButton.classList.remove('active');
-                if (highlightedObject) {
-                    if (highlightedObject.isGroup) {
-                        highlightedObject.children.forEach(child => {
-                            if (originalMaterials.has(child.uuid)) {
-                                child.material = originalMaterials.get(child.uuid);
-                            }
-                        });
-                    } else if (originalMaterials.has(highlightedObject.uuid)) {
-                        highlightedObject.material = originalMaterials.get(highlightedObject.uuid);
-                    }
-                }
-                highlightedObject = null;
-            }
-        }
-
-        /**
-         * Updates the camera's position based on spherical coordinates (phi, theta, distance).
-         */
-        function updateCameraPosition() {
-            camera.position.x = cameraTarget.x + cameraDistance * Math.sin(phi) * Math.sin(theta);
-            camera.position.y = cameraTarget.y + cameraDistance * Math.cos(phi);
-            camera.position.z = cameraTarget.z + cameraDistance * Math.sin(phi) * Math.cos(theta);
-            camera.lookAt(cameraTarget);
-        }
-
-        /**
-         * Creates a specified number of objects of a given type and adds them to both Three.js scene and Cannon.js world.
-         * @param {string} type - The type of object to create ('sphere', 'box', 'cylinder', 'human').
-         * @param {number} count - The number of objects to create.
-         */
         function createObject(type, count) {
+            console.log(`Attempting to create ${count} object(s) of type: ${type}`);
             for (let i = 0; i < count; i++) {
-                let mesh;
-                let body;
+                let geometry, material, mesh, body;
                 const mass = 1;
-                const color = new THREE.Color(Math.random(), Math.random(), Math.random());
-                const material = new THREE.MeshLambertMaterial({ color: color });
-
-                const initialX = Math.random() * 10 - 5;
-                const initialY = 10 + Math.random() * 5;
-                const initialZ = Math.random() * 10 - 5;
+                const color = new THREE.Color(Math.random() * 0xffffff);
+                const initialY = 5 + Math.random() * 5;
+                const initialX = (Math.random() - 0.5) * 10;
+                const initialZ = (Math.random() - 0.5) * 10;
+                let objectName = '';
 
                 switch (type) {
                     case 'sphere':
-                        const sphereRadius = 1;
-                        mesh = new THREE.Mesh(new THREE.SphereGeometry(sphereRadius, 32, 32), material);
-                        body = new CANNON.Body({ mass: mass, shape: new CANNON.Sphere(sphereRadius) });
+                        geometry = new THREE.SphereGeometry(1, 32, 32);
+                        material = new THREE.MeshLambertMaterial({ color: color });
+                        mesh = new THREE.Mesh(geometry, material);
+                        mesh.castShadow = true;
+                        mesh.receiveShadow = true;
+                        body = new CANNON.Body({ mass: mass, shape: new CANNON.Sphere(1) });
+                        objectName = 'Sphere';
                         break;
                     case 'box':
-                        const boxSize = 2;
-                        mesh = new THREE.Mesh(new THREE.BoxGeometry(boxSize, boxSize, boxSize), material);
-                        body = new CANNON.Body({ mass: mass, shape: new CANNON.Box(new CANNON.Vec3(boxSize / 2, boxSize / 2, boxSize / 2)) });
+                        geometry = new THREE.BoxGeometry(2, 2, 2);
+                        material = new THREE.MeshLambertMaterial({ color: color });
+                        mesh = new THREE.Mesh(geometry, material);
+                        mesh.castShadow = true;
+                        mesh.receiveShadow = true;
+                        body = new CANNON.Body({ mass: mass, shape: new CANNON.Box(new CANNON.Vec3(1, 1, 1)) });
+                        objectName = 'Box';
                         break;
                     case 'cylinder':
-                        const cylinderRadiusTop = 1;
-                        const cylinderRadiusBottom = 1;
-                        const cylinderHeight = 2;
-                        const cylinderSegments = 32;
-                        mesh = new THREE.Mesh(new THREE.CylinderGeometry(cylinderRadiusTop, cylinderRadiusBottom, cylinderHeight, cylinderSegments), material);
-                        body = new CANNON.Body({ mass: mass, shape: new CANNON.Cylinder(cylinderRadiusTop, cylinderRadiusBottom, cylinderHeight, cylinderSegments) });
+                        geometry = new THREE.CylinderGeometry(1, 1, 2, 32);
+                        material = new THREE.MeshLambertMaterial({ color: color });
+                        mesh = new THREE.Mesh(geometry, material);
+                        mesh.castShadow = true;
+                        mesh.receiveShadow = true;
+                        body = new CANNON.Body({ mass: mass, shape: new CANNON.Cylinder(1, 1, 2, 32) });
+                        objectName = 'Cylinder';
                         break;
                     case 'human':
-                        const humanHeight = 3;
-                        const humanRadius = 0.5;
-                        const humanMass = 5;
+                        const humanGroup = new THREE.Group();
+                        const bodyHeight = 2.5;
+                        const bodyRadius = 0.5;
+                        const headRadius = 0.7;
 
-                        const humanBodyGeometry = new THREE.CylinderGeometry(humanRadius, humanRadius, humanHeight - humanRadius * 2, 32);
-                        const humanHeadGeometry = new THREE.SphereGeometry(humanRadius, 32, 32);
-                        const humanBodyMaterial = new THREE.MeshLambertMaterial({ color: color });
-                        const humanHeadMaterial = new THREE.MeshLambertMaterial({ color: new THREE.Color(Math.random(), Math.random(), Math.random()) });
+                        const bodyGeometry = new THREE.CylinderGeometry(bodyRadius, bodyRadius, bodyHeight, 16);
+                        const bodyMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+                        const bodyMesh = new THREE.Mesh(bodyGeometry, bodyMaterial);
+                        bodyMesh.position.y = bodyHeight / 2;
+                        bodyMesh.castShadow = true;
+                        bodyMesh.receiveShadow = true;
+                        humanGroup.add(bodyMesh);
 
-                        const humanBodyMesh = new THREE.Mesh(humanBodyGeometry, humanBodyMaterial);
-                        const humanHeadMesh = new THREE.Mesh(humanHeadGeometry, humanHeadMaterial);
+                        const headGeometry = new THREE.SphereGeometry(headRadius, 16, 16);
+                        const headMaterial = new THREE.MeshLambertMaterial({ color: 0xFFA07A });
+                        const headMesh = new THREE.Mesh(headGeometry, headMaterial);
+                        headMesh.position.y = bodyHeight + headRadius;
+                        headMesh.castShadow = true;
+                        headMesh.receiveShadow = true;
+                        humanGroup.add(headMesh);
 
-                        humanHeadMesh.position.y = (humanHeight / 2) - humanRadius + (humanRadius / 2);
-                        humanBodyMesh.position.y = (humanRadius - humanHeight / 2);
-
-                        mesh = new THREE.Group();
-                        mesh.add(humanBodyMesh);
-                        mesh.add(humanHeadMesh);
-                        mesh.castShadow = true;
-
-                        const humanCapsuleShape = new CANNON.Cylinder(humanRadius, humanRadius, humanHeight, 32);
-                        body = new CANNON.Body({ mass: humanMass, shape: humanCapsuleShape });
+                        mesh = humanGroup;
+                        const humanBox = new THREE.Box3().setFromObject(humanGroup);
+                        const humanSize = humanBox.getSize(new THREE.Vector3());
+                        const humanHalfExtents = new CANNON.Vec3(humanSize.x / 2, humanSize.y / 2, humanSize.z / 2);
+                        body = new CANNON.Body({ mass: mass, shape: new CANNON.Box(humanHalfExtents) });
+                        body.position.y += humanSize.y / 2;
+                        objectName = 'Human';
                         break;
                     default:
-                        console.warn("Unknown object type:", type);
+                        console.error("Unknown object type:", type);
+                        return;
+                }
+
+                mesh.position.set(initialX, initialY, initialZ);
+                body.position.copy(mesh.position);
+                mesh.userData = { name: objectName };
+
+                scene.add(mesh);
+                world.addBody(body);
+                meshes.push(mesh);
+                bodies.push(body);
+                console.log(`Added a ${objectName}. Total objects: ${meshes.length}`);
+            }
+        }
+
+        function clearAllObjects() {
+            while (meshes.length > 0) {
+                const mesh = meshes.pop();
+                scene.remove(mesh);
+                if (mesh.geometry) mesh.geometry.dispose();
+                if (mesh.material) {
+                    if (Array.isArray(mesh.material)) {
+                        mesh.material.forEach(m => m.dispose());
+                    } else {
+                        mesh.material.dispose();
+                    }
+                }
+            }
+            while (bodies.length > 0) {
+                const body = bodies.pop();
+                world.removeBody(body);
+            }
+            highlightedObject = null;
+            originalMaterials.clear();
+            console.log("All objects cleared.");
+        }
+
+        function saveSceneState() {
+            const sceneData = [];
+            meshes.forEach((mesh, index) => {
+                const body = bodies[index];
+                if (mesh && body) {
+                    let type = 'unknown';
+                    if (mesh.geometry) {
+                        if (mesh.geometry.type === 'SphereGeometry') type = 'sphere';
+                        else if (mesh.geometry.type === 'BoxGeometry') type = 'box';
+                        else if (mesh.geometry.type === 'CylinderGeometry') type = 'cylinder';
+                    } else if (mesh.isGroup) {
+                        type = 'human';
+                    }
+
+                    sceneData.push({
+                        type: type,
+                        position: { x: body.position.x, y: body.position.y, z: body.position.z },
+                        quaternion: { x: body.quaternion.x, y: body.quaternion.y, z: body.quaternion.z, w: body.quaternion.w },
+                        velocity: { x: body.velocity.x, y: body.velocity.y, z: body.velocity.z },
+                        angularVelocity: { x: body.angularVelocity.x, y: body.angularVelocity.y, z: body.angularVelocity.z },
+                        color: mesh.material && mesh.material.color ? mesh.material.color.getHex() : null
+                    });
+                }
+            });
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sceneData, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "gravity_sandbox_scene.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            console.log("Scene state saved.");
+        }
+
+        function loadSceneState(sceneData) {
+            clearAllObjects();
+            sceneData.forEach(objData => {
+                let geometry, material, mesh, body;
+                const mass = 1;
+                const color = objData.color ? new THREE.Color(objData.color) : new THREE.Color(Math.random() * 0xffffff);
+                let objectName = '';
+
+                switch (objData.type) {
+                    case 'sphere':
+                        geometry = new THREE.SphereGeometry(1, 32, 32);
+                        material = new THREE.MeshLambertMaterial({ color: color });
+                        mesh = new THREE.Mesh(geometry, material);
+                        body = new CANNON.Body({ mass: mass, shape: new CANNON.Sphere(1) });
+                        objectName = 'Sphere';
+                        break;
+                    case 'box':
+                        geometry = new THREE.BoxGeometry(2, 2, 2);
+                        material = new THREE.MeshLambertMaterial({ color: color });
+                        mesh = new THREE.Mesh(geometry, material);
+                        body = new CANNON.Body({ mass: mass, shape: new CANNON.Box(new CANNON.Vec3(1, 1, 1)) });
+                        objectName = 'Box';
+                        break;
+                    case 'cylinder':
+                        geometry = new THREE.CylinderGeometry(1, 1, 2, 32);
+                        material = new THREE.MeshLambertMaterial({ color: color });
+                        mesh = new THREE.Mesh(geometry, material);
+                        body = new CANNON.Body({ mass: mass, shape: new CANNON.Cylinder(1, 1, 2, 32) });
+                        objectName = 'Cylinder';
+                        break;
+                    case 'human':
+                        const humanGroup = new THREE.Group();
+                        const bodyHeight = 2.5;
+                        const bodyRadius = 0.5;
+                        const headRadius = 0.7;
+
+                        const bodyGeometry = new THREE.CylinderGeometry(bodyRadius, bodyRadius, bodyHeight, 16);
+                        const bodyMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+                        const bodyMesh = new THREE.Mesh(bodyGeometry, bodyMaterial);
+                        bodyMesh.position.y = bodyHeight / 2;
+                        humanGroup.add(bodyMesh);
+
+                        const headGeometry = new THREE.SphereGeometry(headRadius, 16, 16);
+                        const headMaterial = new THREE.MeshLambertMaterial({ color: 0xFFA07A });
+                        const headMesh = new THREE.Mesh(headGeometry, headMaterial);
+                        headMesh.position.y = bodyHeight + headRadius;
+                        humanGroup.add(headMesh);
+                        mesh = humanGroup;
+
+                        const humanBox = new THREE.Box3().setFromObject(humanGroup);
+                        const humanSize = humanBox.getSize(new THREE.Vector3());
+                        const humanHalfExtents = new CANNON.Vec3(humanSize.x / 2, humanSize.y / 2, humanSize.z / 2);
+                        body = new CANNON.Body({ mass: mass, shape: new CANNON.Box(humanHalfExtents) });
+                        body.position.y += humanSize.y / 2;
+                        objectName = 'Human';
+                        break;
+                    default:
+                        console.warn("Skipping unknown object type during load:", objData.type);
                         return;
                 }
 
                 mesh.castShadow = true;
+                mesh.receiveShadow = true;
+
+                body.position.set(objData.position.x, objData.position.y, objData.position.z);
+                body.quaternion.set(objData.quaternion.x, objData.quaternion.y, objData.quaternion.z, objData.quaternion.w);
+                body.velocity.set(objData.velocity.x, objData.velocity.y, objData.velocity.z);
+                body.angularVelocity.set(objData.angularVelocity.x, objData.angularVelocity.y, objData.angularVelocity.z);
+                mesh.userData = { name: objectName };
+
                 scene.add(mesh);
-                meshes.push(mesh);
-                // Store original materials for all children if it's a group
-                if (mesh.isGroup) {
-                    mesh.children.forEach(child => {
-                        originalMaterials.set(child.uuid, child.material);
-                    });
-                } else {
-                    originalMaterials.set(mesh.uuid, material);
-                }
-
-                body.position.set(initialX, initialY, initialZ);
-                body.quaternion.setFromAxisAngle(new CANNON.Vec3(Math.random(), Math.random(), Math.random()).unit(), Math.random() * Math.PI * 2);
                 world.addBody(body);
+                meshes.push(mesh);
                 bodies.push(body);
-            }
+            });
+            console.log("Scene state loaded successfully.");
         }
 
-        /**
-         * Handles the right-click event on the canvas to show the context menu.
-         * @param {MouseEvent} event - The mouse event.
-         */
-        function onContextMenu(event) {
-            event.preventDefault(); // Prevent the default browser context menu
-
-            // Hide other menus if they are open
-            hideAllMenus();
-
-            contextMenu.style.display = 'block';
-            contextMenu.style.left = `${event.clientX}px`;
-            contextMenu.style.top = `${event.clientY}px`;
-        }
-
-        /**
-         * Clears all dynamic objects from the simulation.
-         */
-        function clearAllObjects() {
-            // Remove all meshes from the scene
-            for (const mesh of meshes) {
-                scene.remove(mesh);
-                // Dispose of geometries and materials to free up memory
-                if (mesh.isGroup) {
-                    mesh.children.forEach(child => {
-                        if (child.geometry) child.geometry.dispose();
-                        if (child.material) child.material.dispose();
-                    });
-                } else {
-                    if (mesh.geometry) mesh.geometry.dispose();
-                    if (mesh.material) mesh.material.dispose();
-                }
-            }
-            meshes = []; // Clear the meshes array
-
-            // Remove all bodies from the physics world
-            for (const body of bodies) {
-                world.removeBody(body);
-            }
-            bodies = []; // Clear the bodies array
-
-            originalMaterials.clear(); // Clear stored materials
-
-            // Reset highlighted object state
-            highlightedObject = null;
-        }
-
-        /**
-         * Saves the current state of the scene (object types, positions, rotations) to a JSON file.
-         */
-        function saveSceneState() {
-            const sceneData = [];
-            for (let i = 0; i < meshes.length; i++) {
-                const mesh = meshes[i];
-                const body = bodies[i];
-
-                let type;
-                if (mesh.isGroup) {
-                    type = 'human'; // Assuming all groups are humanoids for now
-                } else if (mesh.geometry.type === 'SphereGeometry') {
-                    type = 'sphere';
-                } else if (mesh.geometry.type === 'BoxGeometry') {
-                    type = 'box';
-                } else if (mesh.geometry.type === 'CylinderGeometry') {
-                    type = 'cylinder';
-                } else {
-                    type = 'unknown'; // Fallback for other types
-                }
-
-                sceneData.push({
-                    type: type,
-                    position: { x: body.position.x, y: body.position.y, z: body.position.z },
-                    quaternion: { x: body.quaternion.x, y: body.quaternion.y, z: body.quaternion.z, w: body.quaternion.w }
-                });
-            }
-
-            const dataStr = JSON.stringify(sceneData, null, 2); // Pretty print JSON
-            const blob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'physics_scene_state.json';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url); // Clean up the object URL
-
-            alert('Scene state saved as physics_scene_state.json. Note: This saves object types, positions, and rotations, not a full 3D model format like GLTF.');
-        }
-
-
-        function onWindowResize() {
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
+        function updateCameraPosition() {
+            camera.position.x = cameraTarget.x + cameraDistance * Math.sin(phi) * Math.cos(theta);
+            camera.position.y = cameraTarget.y + cameraDistance * Math.cos(phi);
+            camera.position.z = cameraTarget.z + cameraDistance * Math.sin(phi) * Math.sin(theta);
+            camera.lookAt(cameraTarget);
         }
 
         function onMouseDown(event) {
-            // Only allow dragging if not clicking on a UI element and not in remove mode
-            if (event.target.tagName === 'CANVAS' && !removeModeActive) {
+            if (event.button === 0) {
                 isDragging = true;
                 previousMouseX = event.clientX;
                 previousMouseY = event.clientY;
             }
         }
 
-        function onMouseUp() {
-            isDragging = false;
-        }
-
-        function onMouseMove(event) {
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-            if (removeModeActive) {
-                raycaster.setFromCamera(mouse, camera);
-                const intersects = raycaster.intersectObjects(meshes, true);
-
-                if (intersects.length > 0) {
-                    let newHighlighted = null;
-                    for (const intersect of intersects) {
-                        let currentObject = intersect.object;
-                        while (currentObject) {
-                            // Find the top-level mesh that is directly in our 'meshes' array
-                            if (meshes.includes(currentObject)) {
-                                newHighlighted = currentObject;
-                                break;
-                            }
-                            currentObject = currentObject.parent;
-                        }
-                        if (newHighlighted) break;
-                    }
-
-                    if (newHighlighted && newHighlighted !== highlightedObject) {
-                        // Restore previous highlighted object's material
-                        if (highlightedObject) {
-                            if (highlightedObject.isGroup) {
-                                highlightedObject.children.forEach(child => {
-                                    if (originalMaterials.has(child.uuid)) {
-                                        child.material = originalMaterials.get(child.uuid);
-                                    }
-                                });
-                            } else if (originalMaterials.has(highlightedObject.uuid)) {
-                                highlightedObject.material = originalMaterials.get(highlightedObject.uuid);
-                            }
-                        }
-                        // Apply highlight to new object
-                        highlightedObject = newHighlighted;
-                        if (highlightedObject.isGroup) {
-                            highlightedObject.children.forEach(child => {
-                                if (!originalMaterials.has(child.uuid)) {
-                                    originalMaterials.set(child.uuid, child.material);
-                                }
-                                child.material = highlightMaterial;
-                            });
-                        } else {
-                            if (!originalMaterials.has(highlightedObject.uuid)) {
-                                originalMaterials.set(highlightedObject.uuid, highlightedObject.material);
-                            }
-                            highlightedObject.material = highlightMaterial;
-                        }
-                    }
-                } else {
-                    // No intersection, remove highlight if any
-                    if (highlightedObject) {
-                        if (highlightedObject.isGroup) {
-                            highlightedObject.children.forEach(child => {
-                                if (originalMaterials.has(child.uuid)) {
-                                    child.material = originalMaterials.get(child.uuid);
-                                }
-                            });
-                        } else if (originalMaterials.has(highlightedObject.uuid)) {
-                            highlightedObject.material = originalMaterials.get(highlightedObject.uuid);
-                        }
-                    }
-                    highlightedObject = null;
-                }
-            } else { // Normal camera mode
-                if (isDragging) {
-                    const deltaX = event.clientX - previousMouseX;
-                    const deltaY = event.clientY - previousMouseY;
-
-                    const rotationSpeed = 0.005;
-
-                    theta -= deltaX * rotationSpeed;
-                    phi -= deltaY * rotationSpeed;
-
-                    phi = Math.max(0.1, Math.min(Math.PI - 0.1, phi));
-
-                    updateCameraPosition();
-
-                    previousMouseX = event.clientX;
-                    previousMouseY = event.clientY;
-                }
-                // Ensure highlight is removed when not in remove mode
-                if (highlightedObject) {
-                    if (highlightedObject.isGroup) {
-                        highlightedObject.children.forEach(child => {
-                            if (originalMaterials.has(child.uuid)) {
-                                child.material = originalMaterials.get(child.uuid);
-                            }
-                        });
-                    } else if (originalMaterials.has(highlightedObject.uuid)) {
-                        highlightedObject.material = originalMaterials.get(highlightedObject.uuid);
-                    }
-                }
-                highlightedObject = null;
+        function onMouseUp(event) {
+            if (event.button === 0) {
+                isDragging = false;
             }
         }
 
+        function onMouseMove(event) {
+            if (isDragging) {
+                const deltaX = event.clientX - previousMouseX;
+                const deltaY = event.clientY - previousMouseY;
+
+                theta -= deltaX * 0.005;
+                phi -= deltaY * 0.005;
+
+                phi = Math.max(0.1, Math.min(Math.PI - 0.1, phi));
+
+                updateCameraPosition();
+
+                previousMouseX = event.clientX;
+                previousMouseY = event.clientY;
+            }
+
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(meshes, true);
+
+            let newHoveredMesh = null;
+            if (intersects.length > 0) {
+                for (let i = 0; i < intersects.length; i++) {
+                    const intersectedMesh = intersects[i].object;
+                    let currentMesh = intersectedMesh;
+                    while (currentMesh && !meshes.includes(currentMesh)) {
+                        currentMesh = currentMesh.parent;
+                    }
+                    if (currentMesh && meshes.includes(currentMesh)) {
+                        newHoveredMesh = currentMesh;
+                        break;
+                    }
+                }
+            }
+
+            if (newHoveredMesh !== currentHoveredMesh) {
+                if (currentHoveredMesh && !removeModeActive) {
+                    const originalMaterial = originalMaterials.get(currentHoveredMesh.uuid);
+                    if (originalMaterial) {
+                        currentHoveredMesh.material = originalMaterial;
+                    }
+                }
+                clearTimeout(meshHoverTimer);
+                hideTooltip();
+
+                currentHoveredMesh = newHoveredMesh;
+
+                if (currentHoveredMesh) {
+                    meshHoverTimer = setTimeout(() => {
+                        if (currentHoveredMesh && currentHoveredMesh.userData && currentHoveredMesh.userData.name) {
+                            showTooltip(currentHoveredMesh.userData.name, event.clientX, event.clientY);
+                        }
+                    }, 2000);
+
+                    if (removeModeActive) {
+                        if (!originalMaterials.has(currentHoveredMesh.uuid)) {
+                            originalMaterials.set(currentHoveredMesh.uuid, currentHoveredMesh.material);
+                        }
+                        currentHoveredMesh.material = highlightMaterial;
+                    }
+                }
+            } else if (currentHoveredMesh && removeModeActive) {
+                if (!originalMaterials.has(currentHoveredMesh.uuid)) {
+                    originalMaterials.set(currentHoveredMesh.uuid, currentHoveredMesh.material);
+                }
+                currentHoveredMesh.material = highlightMaterial;
+            }
+
+            if (!removeModeActive && highlightedObject) {
+                const originalMaterial = originalMaterials.get(highlightedObject.uuid);
+                if (originalMaterial) {
+                    highlightedObject.material = originalMaterial;
+                }
+                highlightedObject = null;
+                originalMaterials.clear();
+            }
+            highlightedObject = currentHoveredMesh;
+        }
+
+
         function onMouseWheel(event) {
             event.preventDefault();
-            const zoomSpeed = 0.1;
-            cameraDistance += event.deltaY * zoomSpeed;
-
-            cameraDistance = Math.max(5, Math.min(50, cameraDistance));
-
+            cameraDistance += event.deltaY * 0.01;
+            cameraDistance = Math.max(5, Math.min(100, cameraDistance));
             updateCameraPosition();
         }
 
         function onClickCanvas(event) {
-            if (removeModeActive) {
+            if (removeModeActive && event.button === 0) {
                 mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
                 mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
@@ -1226,90 +1215,145 @@
 
                 if (intersects.length > 0) {
                     let objectToRemove = null;
-                    for (const intersect of intersects) {
-                        let currentObject = intersect.object;
-                        while (currentObject) {
-                            // Find the top-level mesh that is directly in our 'meshes' array
-                            if (meshes.includes(currentObject)) {
-                                objectToRemove = currentObject;
-                                break;
-                            }
-                            currentObject = currentObject.parent;
+                    for (let i = 0; i < intersects.length; i++) {
+                        const intersectedMesh = intersects[i].object;
+                        let currentMesh = intersectedMesh;
+                        while (currentMesh && !meshes.includes(currentMesh)) {
+                            currentMesh = currentMesh.parent;
                         }
-                        if (objectToRemove) break;
+                        if (currentMesh && meshes.includes(currentMesh)) {
+                            objectToRemove = currentMesh;
+                            break;
+                        }
                     }
 
                     if (objectToRemove) {
                         const index = meshes.indexOf(objectToRemove);
                         if (index !== -1) {
-                            const bodyToRemove = bodies[index];
-
-                            scene.remove(objectToRemove);
-                            world.removeBody(bodyToRemove);
-
+                            scene.remove(meshes[index]);
+                            world.removeBody(bodies[index]);
                             meshes.splice(index, 1);
                             bodies.splice(index, 1);
-
-                            // Dispose of geometry and material to prevent memory leaks
-                            if (objectToRemove.isGroup) {
-                                objectToRemove.children.forEach(child => {
-                                    originalMaterials.delete(child.uuid);
-                                    if (child.geometry) child.geometry.dispose();
-                                    if (child.material) child.material.dispose();
-                                });
-                            } else {
-                                originalMaterials.delete(objectToRemove.uuid);
-                                if (objectToRemove.geometry) objectToRemove.geometry.dispose();
-                                if (objectToRemove.material) objectToRemove.material.dispose();
-                            }
-
-                            if (highlightedObject === objectToRemove) {
+                            if (objectToRemove === highlightedObject) {
                                 highlightedObject = null;
                             }
+                            originalMaterials.delete(objectToRemove.uuid);
+                            console.log("Object removed.");
                         }
                     }
                 }
             }
         }
 
+        function onContextMenu(event) {
+            event.preventDefault();
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = `${event.clientX}px`;
+            contextMenu.style.top = `${event.clientY}px`;
+        }
+
+        function toggleRemoveMode() {
+            removeModeActive = !removeModeActive;
+            removeItemsButton.classList.toggle('active', removeModeActive);
+            if (!removeModeActive && highlightedObject) {
+                const originalMaterial = originalMaterials.get(highlightedObject.uuid);
+                if (originalMaterial) {
+                    highlightedObject.material = originalMaterial;
+                }
+                highlightedObject = null;
+                originalMaterials.clear();
+            }
+            if (!removeModeActive) {
+                clearTimeout(meshHoverTimer);
+                hideTooltip();
+                currentHoveredMesh = null;
+            }
+            console.log("Remove mode active:", removeModeActive);
+        }
+
+        function hideAllMenus() {
+            controlsModal.style.display = 'none';
+            geminiModal.style.display = 'none';
+            uploadChoiceModal.style.display = 'none';
+            sideMenu.classList.remove('open');
+            sideMenuOverlay.style.display = 'none';
+            contextMenu.style.display = 'none';
+            quantityModal.style.display = 'none';
+            hideTooltip();
+            showMessage('', 0);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
         function animate() {
             requestAnimationFrame(animate);
 
-            // Only step the world if it's defined
-            if (world) {
-                world.step(1 / 60);
+            world.step(1 / 60);
 
-                for (let i = 0; i < meshes.length; i++) {
-                    // Important: If a loaded GLTF model has its own internal structure,
-                    // directly copying position/quaternion to the top-level mesh might not
-                    // correctly update its visual children. A more robust solution would be
-                    // to ensure the GLTF model's root is the mesh[i] and its children
-                    // are relative to it, or to update children individually if needed.
-                    // For now, this assumes the physics body corresponds to the mesh's root.
-                    meshes[i].position.copy(bodies[i].position);
-                    meshes[i].quaternion.copy(bodies[i].quaternion);
+            for (let i = 0; i < meshes.length; i++) {
+                meshes[i].position.copy(bodies[i].position);
+                meshes[i].quaternion.copy(bodies[i].quaternion);
+            }
 
-                    if (meshes[i].isGroup && meshes[i].userData.isHuman) { // Check if it's a human (group)
-                        // Adjust humanoid mesh position based on its internal structure
-                        // This assumes the Cannon body's position is at the base of the capsule
-                        // and the Three.js group's origin is also at the base.
-                        // If the human model is centered on its origin, this adjustment might need tweaking.
-                        meshes[i].position.y -= (meshes[i].children[0].geometry.parameters.height / 2);
-                    }
+            renderer.render(scene, camera);
+        }
+
+        function showTooltip(text, clientX, clientY) {
+            clearTimeout(tooltipTimeout);
+            customTooltip.textContent = text;
+
+            customTooltip.classList.add('show');
+            const tooltipRect = customTooltip.getBoundingClientRect();
+            customTooltip.classList.remove('show');
+
+            const padding = 10;
+
+            let finalX = clientX + padding;
+            let finalY = clientY + padding;
+
+            if (finalX + tooltipRect.width > window.innerWidth) {
+                finalX = clientX - tooltipRect.width - padding;
+                if (finalX < 0) {
+                    finalX = 0;
                 }
             }
 
+            if (finalY + tooltipRect.height > window.innerHeight) {
+                finalY = clientY - tooltipRect.height - padding;
+                if (finalY < 0) {
+                    finalY = 0;
+                }
+            }
 
-            // Camera is always in free-roaming mode
-            updateCameraPosition();
+            customTooltip.style.left = `${finalX}px`;
+            customTooltip.style.top = `${finalY}px`;
+            customTooltip.classList.add('show');
+        }
 
-            renderer.render(scene, camera);
+        function hideTooltip() {
+            clearTimeout(tooltipTimeout);
+            customTooltip.classList.remove('show');
+        }
+
+        function showMessage(message, duration = 3000) {
+            clearTimeout(messageBoxTimeout);
+            messageBox.textContent = message;
+            messageBox.classList.add('show');
+            if (duration > 0) {
+                messageBoxTimeout = setTimeout(() => {
+                    messageBox.classList.remove('show');
+                }, duration);
+            }
         }
 
         window.onload = function () {
             init();
             animate();
-        };
+        }
     </script>
 </body>
 </html>

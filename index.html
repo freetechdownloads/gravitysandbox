@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gravity Sandbox</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #282c34;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        canvas {
+            display: block;
+            background-color: #1a1e24;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #controlsContainer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .control-button {
+            background-color: #4a4f58;
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            color: #e0e0e0;
+        }
+
+        .control-button:hover {
+            background-color: #5a5f68;
+            transform: translateY(-2px);
+        }
+
+        /* Active state for remove button */
+        #removeItemsButton.active {
+            background-color: #dc3545; /* Red color when active */
+            box-shadow: 0 0 15px rgba(220, 53, 69, 0.7); /* Glow effect */
+        }
+
+        /* Active state for info button (if needed, though it just opens modal) */
+        #infoButton.active {
+            background-color: #61dafb; /* Blue color when active */
+            box-shadow: 0 0 15px rgba(97, 218, 251, 0.7); /* Glow effect */
+        }
+
+        .control-button svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: #3a3f47;
+            margin: auto;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            color: #e0e0e0;
+            text-align: center;
+        }
+
+        .modal-content h2 {
+            color: #61dafb;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .modal-content p {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: #e0e0e0;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        #sideMenu {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 1500;
+            top: 0;
+            right: 0;
+            background-color: #3a3f47;
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 60px;
+            box-shadow: -4px 0 8px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #sideMenu.open {
+            width: 250px;
+        }
+
+        #sideMenu .close-button {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+        }
+
+        #sideMenu h2 {
+            color: #61dafb;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        #sideMenu button {
+            background-color: #4a4f58;
+            color: #e0e0e0;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            width: 80%;
+            font-size: 1.1em;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: flex; /* Use flexbox for icon and text alignment */
+            align-items: center;
+            justify-content: center;
+            gap: 10px; /* Space between icon and text */
+        }
+
+        #sideMenu button:hover {
+            background-color: #5a5f68;
+            transform: translateY(-1px);
+        }
+
+        #sideMenuOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+            z-index: 1400;
+        }
+
+        /* Context Menu Styles */
+        #contextMenu {
+            display: none; /* Hidden by default */
+            position: absolute;
+            background-color: #3a3f47;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+            z-index: 2100; /* Above everything */
+            padding: 5px 0;
+            min-width: 150px;
+        }
+
+        #contextMenu button {
+            background: none;
+            border: none;
+            color: #e0e0e0;
+            padding: 10px 15px;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s ease;
+            border-radius: 0; /* Remove border-radius for individual items */
+            box-shadow: none; /* Remove box-shadow for individual items */
+            margin-bottom: 0; /* Remove margin-bottom */
+        }
+
+        #contextMenu button:hover {
+            background-color: #5a5f68;
+            transform: none; /* No transform on hover for menu items */
+        }
+    </style>
+</head>
+<body>
+    <div id="controlsContainer">
+        <button id="addItemsButton" class="control-button" aria-label="Add Items">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        <button id="removeItemsButton" class="control-button" aria-label="Remove Items">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        <!-- Info button moved to the left of the three-dot menu -->
+        <button id="infoButton" class="control-button" aria-label="Simulator Information">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 16V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 8H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        <!-- Three-dot menu (now Controls Menu) -->
+        <button id="menuButton" class="control-button" aria-label="Controls Menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="5" r="2" fill="currentColor"/>
+                <circle cx="12" cy="12" r="2" fill="currentColor"/>
+                <circle cx="12" cy="19" r="2" fill="currentColor"/>
+            </svg>
+        </button>
+    </div>
+
+    <canvas id="physicsCanvas"></canvas>
+
+    <!-- Controls Modal -->
+    <div id="controlsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeModalBtn">&times;</span>
+            <h2>Simulator Controls</h2>
+            <p><strong>Mouse Drag:</strong> Rotate the camera around the simulation.</p>
+            <p><strong>Mouse Wheel:</strong> Zoom in and out.</p>
+            <p><strong>Add Items Button:</strong> Click the '+' icon to open the Add Objects menu.</p>
+            <p><strong>Remove Items Button:</strong> Click the trash can icon to enter removal mode. Hover over objects to see a red outline, then click to remove them.</p>
+            <p><strong>Add Human Button:</strong> Click the 'Add Human' button in the Add Objects menu to spawn a non-controllable humanoid.</p>
+            <p><strong>Right-Click:</strong> Open a context menu to clear all objects or save the scene state.</p>
+        </div>
+    </div>
+
+    <!-- Made by Gemini Modal -->
+    <div id="geminiModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeGeminiModalBtn">&times;</span>
+            <h2>Made by Gemini</h2>
+            <p>This 3D Physics Simulator was created by Gemini.</p>
+            <p>It utilizes Three.js for rendering and Cannon.js for physics simulation.</p>
+            <p>Enjoy experimenting with physics!</p>
+        </div>
+    </div>
+
+    <div id="sideMenuOverlay"></div>
+    <div id="sideMenu">
+        <span class="close-button" id="closeSideMenuBtn">&times;</span>
+        <h2>Add Objects</h2>
+        <button id="addSphereBtn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            Add Sphere
+        </button>
+        <button id="addBoxBtn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            Add Box
+        </button>
+        <button id="addCylinderBtn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="12" cy="5" rx="8" ry="3" stroke="currentColor" stroke-width="2"/>
+                <ellipse cx="12" cy="19" rx="8" ry="3" stroke="currentColor" stroke-width="2"/>
+                <line x1="4" y1="5" x2="4" y2="19" stroke="currentColor" stroke-width="2"/>
+                <line x1="20" y1="5" x2="20" y2="19" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            Add Cylinder
+        </button>
+        <button id="addHumanBtn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C10.8954 2 10 2.89543 10 4C10 5.10457 10.8954 6 12 6C13.1046 6 14 5.10457 14 4C14 2.89543 13.1046 2 12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 7V14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M9 10L12 7L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M9 14L12 22M15 14L12 22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Add Human
+        </button>
+        <button id="upload3dBtn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 16V8M9 13L12 16L15 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M19 17V17C19 18.6569 17.6569 20 16 20H8C6.34315 20 5 18.6569 5 17V17C5 15.3431 6.34315 14 8 14H16C17.6569 14 19 15.3431 19 17Z" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            Upload 3D
+        </button>
+    </div>
+
+    <!-- Right-Click Context Menu -->
+    <div id="contextMenu">
+        <button id="clearAllObjectsBtn">Clear All Objects</button>
+        <button id="saveAs3DModelBtn">Save Scene State (.json)</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+
+    <script>
+        // Global variables for Three.js and Cannon.js
+        let scene, camera, renderer;
+        let world;
+        let meshes = []; // Array to hold Three.js meshes
+        let bodies = []; // Array to hold Cannon.js bodies
+
+        // Mouse control variables for camera movement
+        let isDragging = false;
+        let previousMouseX = 0;
+        let previousMouseY = 0;
+        let cameraTarget = new THREE.Vector3(0, 2, 0); // The point the camera looks at
+        let cameraDistance = 15; // Initial distance from the target
+        let phi = Math.PI * 0.4; // Vertical angle (polar coordinate)
+        let theta = Math.PI * 0.2; // Horizontal angle (azimuthal coordinate)
+
+        // Raycasting for object interaction
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        let highlightedObject = null;
+        const originalMaterials = new Map(); // Store original materials using mesh.uuid as key
+        const highlightMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000, emissive: 0x330000 }); // Red highlight
+
+        // UI elements (declared globally but assigned in init)
+        let controlsModal;
+        let closeModalBtn;
+        let geminiModal;
+        let closeGeminiModalBtn;
+        let menuButton;
+        let addItemsButton;
+        let removeItemsButton;
+        let infoButton;
+        let sideMenu;
+        let closeSideMenuBtn;
+        let sideMenuOverlay;
+        let addSphereBtn;
+        let addBoxBtn;
+        let addCylinderBtn;
+        let addHumanBtn;
+        let upload3dBtn;
+        let contextMenu;
+        let clearAllObjectsBtn;
+        let saveAs3DModelBtn;
+
+        // Mode flags
+        let removeModeActive = false;
+
+        function init() {
+            try {
+                // --- UI element references (MUST be done first) ---
+                controlsModal = document.getElementById('controlsModal');
+                closeModalBtn = document.getElementById('closeModalBtn');
+                geminiModal = document.getElementById('geminiModal');
+                closeGeminiModalBtn = document.getElementById('closeGeminiModalBtn');
+                menuButton = document.getElementById('menuButton');
+                addItemsButton = document.getElementById('addItemsButton');
+                removeItemsButton = document.getElementById('removeItemsButton');
+                infoButton = document.getElementById('infoButton');
+                sideMenu = document.getElementById('sideMenu');
+                closeSideMenuBtn = document.getElementById('closeSideMenuBtn');
+                sideMenuOverlay = document.getElementById('sideMenuOverlay');
+                addSphereBtn = document.getElementById('addSphereBtn');
+                addBoxBtn = document.getElementById('addBoxBtn');
+                addCylinderBtn = document.getElementById('addCylinderBtn');
+                addHumanBtn = document.getElementById('addHumanBtn');
+                upload3dBtn = document.getElementById('upload3dBtn');
+                contextMenu = document.getElementById('contextMenu');
+                clearAllObjectsBtn = document.getElementById('clearAllObjectsBtn');
+                saveAs3DModelBtn = document.getElementById('saveAs3DModelBtn');
+
+                // Ensure all modals are hidden on load
+                hideAllMenus();
+
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x282c34);
+
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                updateCameraPosition();
+
+                const canvas = document.getElementById('physicsCanvas');
+                renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(window.devicePixelRatio);
+
+                world = new CANNON.World();
+                world.gravity.set(0, -9.82, 0);
+                world.broadphase = new CANNON.NaiveBroadphase();
+                world.solver.iterations = 10;
+
+                // --- Ground Plane ---
+                // Three.js ground mesh (visual representation)
+                const groundGeometry = new THREE.PlaneGeometry(50, 50);
+                const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x666666, side: THREE.DoubleSide });
+                const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
+                groundMesh.rotation.x = -Math.PI / 2; // Rotate to be horizontal
+                groundMesh.receiveShadow = true; // Allow ground to receive shadows
+                scene.add(groundMesh);
+
+                // Cannon.js ground body (physics representation) - now a finite box
+                const groundBoxHalfExtentsPhysics = new CANNON.Vec3(25, 0.1, 25); // Half-extents: width, thickness, depth
+                const groundPhysicsShape = new CANNON.Box(groundBoxHalfExtentsPhysics);
+                const groundPhysicsBody = new CANNON.Body({ mass: 0, shape: groundPhysicsShape });
+                // Position its top surface at Y=0 (assuming visual plane is at Y=0)
+                groundPhysicsBody.position.set(0, -groundBoxHalfExtentsPhysics.y, 0);
+                world.addBody(groundPhysicsBody);
+
+                const ambientLight = new THREE.AmbientLight(0x404040);
+                scene.add(ambientLight);
+
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(10, 10, 5);
+                directionalLight.castShadow = true;
+                scene.add(directionalLight);
+
+                directionalLight.shadow.mapSize.width = 1024;
+                directionalLight.shadow.mapSize.height = 1024;
+                directionalLight.shadow.camera.near = 0.5;
+                directionalLight.shadow.camera.far = 50;
+                directionalLight.shadow.camera.left = -20;
+                directionalLight.shadow.camera.right = 20;
+                directionalLight.shadow.camera.top = 20;
+                directionalLight.shadow.camera.bottom = -20;
+
+                renderer.shadowMap.enabled = true;
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+                // Initial objects
+                createObject('sphere', 5);
+                createObject('box', 3);
+                createObject('cylinder', 2);
+                createObject('human', 1);
+
+                // Event listeners for canvas interaction
+                canvas.addEventListener('mousedown', onMouseDown, false);
+                canvas.addEventListener('mouseup', onMouseUp, false);
+                canvas.addEventListener('mousemove', onMouseMove, false);
+                canvas.addEventListener('wheel', onMouseWheel, false);
+                canvas.addEventListener('click', onClickCanvas, false);
+                canvas.addEventListener('contextmenu', onContextMenu, false);
+
+                window.addEventListener('resize', onWindowResize, false);
+
+                // UI event listeners
+                infoButton.addEventListener('click', () => {
+                    hideAllMenus();
+                    geminiModal.style.display = 'flex';
+                });
+                menuButton.addEventListener('click', () => {
+                    hideAllMenus();
+                    controlsModal.style.display = 'flex';
+                });
+
+                closeModalBtn.addEventListener('click', () => { controlsModal.style.display = 'none'; });
+                closeGeminiModalBtn.addEventListener('click', () => { geminiModal.style.display = 'none'; });
+
+                window.addEventListener('click', (event) => {
+                    if (event.target == controlsModal) {
+                        controlsModal.style.display = 'none';
+                    }
+                    if (event.target == geminiModal) {
+                        geminiModal.style.display = 'none';
+                    }
+                });
+
+                addItemsButton.addEventListener('click', () => {
+                    hideAllMenus();
+                    sideMenu.classList.add('open');
+                    sideMenuOverlay.style.display = 'block';
+                });
+                closeSideMenuBtn.addEventListener('click', () => {
+                    sideMenu.classList.remove('open');
+                    sideMenuOverlay.style.display = 'none';
+                });
+                sideMenuOverlay.addEventListener('click', () => {
+                    sideMenu.classList.remove('open');
+                    sideMenuOverlay.style.display = 'none';
+                });
+
+                addSphereBtn.addEventListener('click', () => {
+                    createObject('sphere', 1);
+                    sideMenu.classList.remove('open');
+                    sideMenuOverlay.style.display = 'none';
+                });
+                addBoxBtn.addEventListener('click', () => {
+                    createObject('box', 1);
+                    sideMenu.classList.remove('open');
+                    sideMenuOverlay.style.display = 'none';
+                });
+                addCylinderBtn.addEventListener('click', () => {
+                    createObject('cylinder', 1);
+                    sideMenu.classList.remove('open');
+                    sideMenuOverlay.style.display = 'none';
+                });
+                addHumanBtn.addEventListener('click', () => {
+                    createObject('human', 1);
+                    sideMenu.classList.remove('open');
+                    sideMenuOverlay.style.display = 'none';
+                });
+
+                upload3dBtn.addEventListener('click', () => {
+                    alert('Upload 3D functionality is complex and requires specialized loaders (e.g., GLTFLoader for .gltf/.glb files) and potentially a file input element. This basic simulator does not include full 3D model import capabilities.');
+                    sideMenu.classList.remove('open');
+                    sideMenuOverlay.style.display = 'none';
+                });
+
+                removeItemsButton.addEventListener('click', toggleRemoveMode);
+
+                clearAllObjectsBtn.addEventListener('click', () => {
+                    clearAllObjects();
+                    contextMenu.style.display = 'none';
+                });
+
+                saveAs3DModelBtn.addEventListener('click', () => {
+                    saveSceneState();
+                    contextMenu.style.display = 'none';
+                });
+
+                document.addEventListener('click', (event) => {
+                    if (event.target.closest('#contextMenu') === null) {
+                        contextMenu.style.display = 'none';
+                    }
+                });
+
+                console.log("Simulator initialized successfully."); // Added for debugging
+
+            } catch (error) {
+                console.error("Error during initialization:", error);
+            }
+        }
+
+        /**
+         * Hides all active UI menus/modals.
+         */
+        function hideAllMenus() {
+            // Check if elements are defined before trying to access their style property
+            if (controlsModal) controlsModal.style.display = 'none';
+            if (geminiModal) geminiModal.style.display = 'none';
+            if (sideMenu) sideMenu.classList.remove('open');
+            if (sideMenuOverlay) sideMenuOverlay.style.display = 'none';
+            if (contextMenu) contextMenu.style.display = 'none';
+            if (removeModeActive) toggleRemoveMode(); // Deactivate remove mode
+        }
+
+        /**
+         * Toggles the remove objects mode.
+         */
+        function toggleRemoveMode() {
+            removeModeActive = !removeModeActive;
+            if (removeModeActive) {
+                removeItemsButton.classList.add('active');
+                hideAllMenus();
+            } else {
+                removeItemsButton.classList.remove('active');
+                if (highlightedObject) {
+                    if (highlightedObject.isGroup) {
+                        highlightedObject.children.forEach(child => {
+                            if (originalMaterials.has(child.uuid)) {
+                                child.material = originalMaterials.get(child.uuid);
+                            }
+                        });
+                    } else if (originalMaterials.has(highlightedObject.uuid)) {
+                        highlightedObject.material = originalMaterials.get(highlightedObject.uuid);
+                    }
+                }
+                highlightedObject = null;
+            }
+        }
+
+        /**
+         * Updates the camera's position based on spherical coordinates (phi, theta, distance).
+         */
+        function updateCameraPosition() {
+            camera.position.x = cameraTarget.x + cameraDistance * Math.sin(phi) * Math.sin(theta);
+            camera.position.y = cameraTarget.y + cameraDistance * Math.cos(phi);
+            camera.position.z = cameraTarget.z + cameraDistance * Math.sin(phi) * Math.cos(theta);
+            camera.lookAt(cameraTarget);
+        }
+
+        /**
+         * Creates a specified number of objects of a given type and adds them to both Three.js scene and Cannon.js world.
+         * @param {string} type - The type of object to create ('sphere', 'box', 'cylinder', 'human').
+         * @param {number} count - The number of objects to create.
+         */
+        function createObject(type, count) {
+            for (let i = 0; i < count; i++) {
+                let mesh;
+                let body;
+                const mass = 1;
+                const color = new THREE.Color(Math.random(), Math.random(), Math.random());
+                const material = new THREE.MeshLambertMaterial({ color: color });
+
+                const initialX = Math.random() * 10 - 5;
+                const initialY = 10 + Math.random() * 5;
+                const initialZ = Math.random() * 10 - 5;
+
+                switch (type) {
+                    case 'sphere':
+                        const sphereRadius = 1;
+                        mesh = new THREE.Mesh(new THREE.SphereGeometry(sphereRadius, 32, 32), material);
+                        body = new CANNON.Body({ mass: mass, shape: new CANNON.Sphere(sphereRadius) });
+                        break;
+                    case 'box':
+                        const boxSize = 2;
+                        mesh = new THREE.Mesh(new THREE.BoxGeometry(boxSize, boxSize, boxSize), material);
+                        body = new CANNON.Body({ mass: mass, shape: new CANNON.Box(new CANNON.Vec3(boxSize / 2, boxSize / 2, boxSize / 2)) });
+                        break;
+                    case 'cylinder':
+                        const cylinderRadiusTop = 1;
+                        const cylinderRadiusBottom = 1;
+                        const cylinderHeight = 2;
+                        const cylinderSegments = 32;
+                        mesh = new THREE.Mesh(new THREE.CylinderGeometry(cylinderRadiusTop, cylinderRadiusBottom, cylinderHeight, cylinderSegments), material);
+                        body = new CANNON.Body({ mass: mass, shape: new CANNON.Cylinder(cylinderRadiusTop, cylinderRadiusBottom, cylinderHeight, cylinderSegments) });
+                        break;
+                    case 'human':
+                        const humanHeight = 3;
+                        const humanRadius = 0.5;
+                        const humanMass = 5;
+
+                        const humanBodyGeometry = new THREE.CylinderGeometry(humanRadius, humanRadius, humanHeight - humanRadius * 2, 32);
+                        const humanHeadGeometry = new THREE.SphereGeometry(humanRadius, 32, 32);
+                        const humanBodyMaterial = new THREE.MeshLambertMaterial({ color: color });
+                        const humanHeadMaterial = new THREE.MeshLambertMaterial({ color: new THREE.Color(Math.random(), Math.random(), Math.random()) });
+
+                        const humanBodyMesh = new THREE.Mesh(humanBodyGeometry, humanBodyMaterial);
+                        const humanHeadMesh = new THREE.Mesh(humanHeadGeometry, humanHeadMaterial);
+
+                        humanHeadMesh.position.y = (humanHeight / 2) - humanRadius + (humanRadius / 2);
+                        humanBodyMesh.position.y = (humanRadius - humanHeight / 2);
+
+                        mesh = new THREE.Group();
+                        mesh.add(humanBodyMesh);
+                        mesh.add(humanHeadMesh);
+                        mesh.castShadow = true;
+
+                        const humanCapsuleShape = new CANNON.Cylinder(humanRadius, humanRadius, humanHeight, 32);
+                        body = new CANNON.Body({ mass: humanMass, shape: humanCapsuleShape });
+                        break;
+                    default:
+                        console.warn("Unknown object type:", type);
+                        return;
+                }
+
+                mesh.castShadow = true;
+                scene.add(mesh);
+                meshes.push(mesh);
+                // Store original materials for all children if it's a group
+                if (mesh.isGroup) {
+                    mesh.children.forEach(child => {
+                        originalMaterials.set(child.uuid, child.material);
+                    });
+                } else {
+                    originalMaterials.set(mesh.uuid, material);
+                }
+
+                body.position.set(initialX, initialY, initialZ);
+                body.quaternion.setFromAxisAngle(new CANNON.Vec3(Math.random(), Math.random(), Math.random()).unit(), Math.random() * Math.PI * 2);
+                world.addBody(body);
+                bodies.push(body);
+            }
+        }
+
+        /**
+         * Handles the right-click event on the canvas to show the context menu.
+         * @param {MouseEvent} event - The mouse event.
+         */
+        function onContextMenu(event) {
+            event.preventDefault(); // Prevent the default browser context menu
+
+            // Hide other menus if they are open
+            hideAllMenus();
+
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = `${event.clientX}px`;
+            contextMenu.style.top = `${event.clientY}px`;
+        }
+
+        /**
+         * Clears all dynamic objects from the simulation.
+         */
+        function clearAllObjects() {
+            // Remove all meshes from the scene
+            for (const mesh of meshes) {
+                scene.remove(mesh);
+                // Dispose of geometries and materials to free up memory
+                if (mesh.isGroup) {
+                    mesh.children.forEach(child => {
+                        if (child.geometry) child.geometry.dispose();
+                        if (child.material) child.material.dispose();
+                    });
+                } else {
+                    if (mesh.geometry) mesh.geometry.dispose();
+                    if (mesh.material) mesh.material.dispose();
+                }
+            }
+            meshes = []; // Clear the meshes array
+
+            // Remove all bodies from the physics world
+            for (const body of bodies) {
+                world.removeBody(body);
+            }
+            bodies = []; // Clear the bodies array
+
+            originalMaterials.clear(); // Clear stored materials
+
+            // Reset highlighted object state
+            highlightedObject = null;
+        }
+
+        /**
+         * Saves the current state of the scene (object types, positions, rotations) to a JSON file.
+         */
+        function saveSceneState() {
+            const sceneData = [];
+            for (let i = 0; i < meshes.length; i++) {
+                const mesh = meshes[i];
+                const body = bodies[i];
+
+                let type;
+                if (mesh.isGroup) {
+                    type = 'human'; // Assuming all groups are humanoids for now
+                } else if (mesh.geometry.type === 'SphereGeometry') {
+                    type = 'sphere';
+                } else if (mesh.geometry.type === 'BoxGeometry') {
+                    type = 'box';
+                } else if (mesh.geometry.type === 'CylinderGeometry') {
+                    type = 'cylinder';
+                } else {
+                    type = 'unknown'; // Fallback for other types
+                }
+
+                sceneData.push({
+                    type: type,
+                    position: { x: body.position.x, y: body.position.y, z: body.position.z },
+                    quaternion: { x: body.quaternion.x, y: body.quaternion.y, z: body.quaternion.z, w: body.quaternion.w }
+                });
+            }
+
+            const dataStr = JSON.stringify(sceneData, null, 2); // Pretty print JSON
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'physics_scene_state.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url); // Clean up the object URL
+
+            alert('Scene state saved as physics_scene_state.json. Note: This saves object types, positions, and rotations, not a full 3D model format like GLTF.');
+        }
+
+
+        function onWindowResize() {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        }
+
+        function onMouseDown(event) {
+            // Only allow dragging if not clicking on a UI element and not in remove mode
+            if (event.target.tagName === 'CANVAS' && !removeModeActive) {
+                isDragging = true;
+                previousMouseX = event.clientX;
+                previousMouseY = event.clientY;
+            }
+        }
+
+        function onMouseUp() {
+            isDragging = false;
+        }
+
+        function onMouseMove(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            if (removeModeActive) {
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(meshes, true);
+
+                if (intersects.length > 0) {
+                    let newHighlighted = null;
+                    for (const intersect of intersects) {
+                        let currentObject = intersect.object;
+                        while (currentObject) {
+                            if (meshes.includes(currentObject)) {
+                                newHighlighted = currentObject;
+                                break;
+                            }
+                            currentObject = currentObject.parent;
+                        }
+                        if (newHighlighted) break;
+                    }
+
+                    if (newHighlighted && newHighlighted !== highlightedObject) {
+                        if (highlightedObject) {
+                            if (highlightedObject.isGroup) {
+                                highlightedObject.children.forEach(child => {
+                                    if (originalMaterials.has(child.uuid)) {
+                                        child.material = originalMaterials.get(child.uuid);
+                                    }
+                                });
+                            } else if (originalMaterials.has(highlightedObject.uuid)) {
+                                highlightedObject.material = originalMaterials.get(highlightedObject.uuid);
+                            }
+                        }
+                        highlightedObject = newHighlighted;
+                        if (highlightedObject.isGroup) {
+                            highlightedObject.children.forEach(child => {
+                                if (!originalMaterials.has(child.uuid)) {
+                                    originalMaterials.set(child.uuid, child.material);
+                                }
+                                child.material = highlightMaterial;
+                            });
+                        } else {
+                            if (!originalMaterials.has(highlightedObject.uuid)) {
+                                originalMaterials.set(highlightedObject.uuid, highlightedObject.material);
+                            }
+                            highlightedObject.material = highlightMaterial;
+                        }
+                    }
+                } else {
+                    if (highlightedObject) {
+                        if (highlightedObject.isGroup) {
+                            highlightedObject.children.forEach(child => {
+                                if (originalMaterials.has(child.uuid)) {
+                                    child.material = originalMaterials.get(child.uuid);
+                                }
+                            });
+                        } else if (originalMaterials.has(highlightedObject.uuid)) {
+                            highlightedObject.material = originalMaterials.get(highlightedObject.uuid);
+                        }
+                    }
+                    highlightedObject = null;
+                }
+            } else { // Normal camera mode (no humanoid mode)
+                if (isDragging) {
+                    const deltaX = event.clientX - previousMouseX;
+                    const deltaY = event.clientY - previousMouseY;
+
+                    const rotationSpeed = 0.005;
+
+                    theta -= deltaX * rotationSpeed;
+                    phi -= deltaY * rotationSpeed;
+
+                    phi = Math.max(0.1, Math.min(Math.PI - 0.1, phi));
+
+                    updateCameraPosition();
+
+                    previousMouseX = event.clientX;
+                    previousMouseY = event.clientY;
+                }
+                if (highlightedObject) {
+                    if (highlightedObject.isGroup) {
+                        highlightedObject.children.forEach(child => {
+                            if (originalMaterials.has(child.uuid)) {
+                                child.material = originalMaterials.get(child.uuid);
+                            }
+                        });
+                    } else if (originalMaterials.has(highlightedObject.uuid)) {
+                        highlightedObject.material = originalMaterials.get(highlightedObject.uuid);
+                    }
+                }
+                highlightedObject = null;
+            }
+        }
+
+        function onMouseWheel(event) {
+            event.preventDefault();
+            // Zoom is always active now, no humanoid mode check
+            const zoomSpeed = 0.1;
+            cameraDistance += event.deltaY * zoomSpeed;
+
+            cameraDistance = Math.max(5, Math.min(50, cameraDistance));
+
+            updateCameraPosition();
+        }
+
+        function onClickCanvas(event) {
+            if (removeModeActive) {
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(meshes, true);
+
+                if (intersects.length > 0) {
+                    let objectToRemove = null;
+                    for (const intersect of intersects) {
+                        let currentObject = intersect.object;
+                        while (currentObject) {
+                            if (meshes.includes(currentObject)) {
+                                objectToRemove = currentObject;
+                                break;
+                            }
+                            currentObject = currentObject.parent;
+                        }
+                        if (objectToRemove) break;
+                    }
+
+                    if (objectToRemove) {
+                        const index = meshes.indexOf(objectToRemove);
+                        if (index !== -1) {
+                            const bodyToRemove = bodies[index];
+
+                            scene.remove(objectToRemove);
+                            world.removeBody(bodyToRemove);
+
+                            meshes.splice(index, 1);
+                            bodies.splice(index, 1);
+
+                            if (objectToRemove.isGroup) {
+                                objectToRemove.children.forEach(child => {
+                                    originalMaterials.delete(child.uuid);
+                                    if (child.geometry) child.geometry.dispose();
+                                    if (child.material) child.material.dispose();
+                                });
+                            } else {
+                                originalMaterials.delete(objectToRemove.uuid);
+                                if (objectToRemove.geometry) objectToRemove.geometry.dispose();
+                                if (objectToRemove.material) objectToRemove.material.dispose();
+                            }
+
+                            if (highlightedObject === objectToRemove) {
+                                highlightedObject = null;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Only step the world if it's defined
+            if (world) {
+                world.step(1 / 60);
+
+                for (let i = 0; i < meshes.length; i++) {
+                    meshes[i].position.copy(bodies[i].position);
+                    meshes[i].quaternion.copy(bodies[i].quaternion);
+
+                    if (meshes[i].isGroup) { // Check if it's a human (group)
+                        meshes[i].position.y -= (meshes[i].children[0].geometry.parameters.height / 2);
+                    }
+                }
+            }
+
+
+            // Camera is always in free-roaming mode
+            updateCameraPosition();
+
+            renderer.render(scene, camera);
+        }
+
+        window.onload = function () {
+            init();
+            animate();
+        };
+    </script>
+</body>
+</html>

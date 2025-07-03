@@ -368,13 +368,20 @@
         <div class="modal-content">
             <span class="close-button" id="closeModalBtn">&times;</span>
             <h2>Simulator Controls</h2>
-            <p><strong>Mouse Drag:</strong> Rotate the camera around the simulation.</p>
-            <p><strong>Mouse Wheel:</strong> Zoom in and out.</p>
+            <div id="desktopControls">
+                <p><strong>Mouse Drag:</strong> Rotate the camera around the simulation.</p>
+                <p><strong>Mouse Wheel:</strong> Zoom in and out.</p>
+                <p><strong>Right-Click Canvas:</strong> Open a context menu to clear all objects or save the scene state.</p>
+            </div>
+            <div id="mobileControls" style="display: none;">
+                <p><strong>One-Finger Drag:</strong> Rotate the camera around the simulation.</p>
+                <p><strong>Two-Finger Pinch:</strong> Zoom in and out.</p>
+                <p><strong>Long Press Canvas:</strong> Open a context menu to clear all objects or save the scene state.</p>
+            </div>
             <p><strong>Add Items Button:</strong> Click the '+' icon to open the Add Objects menu.</p>
-            <p><strong>Right-Click on Add Item:</strong> Right-click an item in the Add Objects menu to specify how many to add.</p>
-            <p><strong>Remove Items Button:</strong> Click the trash can icon to enter removal mode. Hover over objects to see a red outline, then click to remove them.</p>
+            <p><strong>Right-Click (Desktop) / Long Press (Mobile) on Add Item:</strong> Specify how many to add.</p>
+            <p><strong>Remove Items Button:</strong> Click the trash can icon to enter removal mode. Hover/Tap over objects to see a red outline, then click/tap to remove them.</p>
             <p><strong>Add Human Button:</strong> Click the 'Add Human' button in the Add Objects menu to spawn a non-controllable humanoid.</p>
-            <p><strong>Right-Click Canvas:</strong> Open a context menu to clear all objects or save the scene state.</p>
         </div>
     </div>
 
@@ -477,6 +484,17 @@
         let phi = Math.PI * 0.4;
         let theta = Math.PI * 0.2;
 
+        // Touch control variables
+        let isMobile = false;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchMoveX = 0;
+        let touchMoveY = 0;
+        let initialPinchDistance = 0;
+        let touchCount = 0;
+        let longPressTimer = null;
+        const LONG_PRESS_THRESHOLD = 500; // milliseconds
+
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
         let highlightedObject = null;
@@ -528,6 +546,9 @@
 
         function init() {
             try {
+                // Detect mobile device
+                isMobile = /Mobi|Android/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
                 controlsModal = document.getElementById('controlsModal');
                 closeModalBtn = document.getElementById('closeModalBtn');
                 geminiModal = document.getElementById('geminiModal');
@@ -619,12 +640,24 @@
                 createObject('cylinder', 2);
                 createObject('human', 1);
 
-                canvas.addEventListener('mousedown', onMouseDown, false);
-                canvas.addEventListener('mouseup', onMouseUp, false);
-                canvas.addEventListener('mousemove', onMouseMove, false);
-                canvas.addEventListener('wheel', onMouseWheel, false);
-                canvas.addEventListener('click', onClickCanvas, false);
-                canvas.addEventListener('contextmenu', onContextMenu, false);
+                // Conditional event listeners based on device type
+                if (isMobile) {
+                    canvas.addEventListener('touchstart', onTouchStart, false);
+                    canvas.addEventListener('touchmove', onTouchMove, false);
+                    canvas.addEventListener('touchend', onTouchEnd, false);
+                    canvas.addEventListener('contextmenu', (e) => e.preventDefault(), false); // Prevent default long-press context menu
+                    document.getElementById('desktopControls').style.display = 'none';
+                    document.getElementById('mobileControls').style.display = 'block';
+                } else {
+                    canvas.addEventListener('mousedown', onMouseDown, false);
+                    canvas.addEventListener('mouseup', onMouseUp, false);
+                    canvas.addEventListener('mousemove', onMouseMove, false);
+                    canvas.addEventListener('wheel', onMouseWheel, false);
+                    canvas.addEventListener('contextmenu', onContextMenu, false);
+                    document.getElementById('desktopControls').style.display = 'block';
+                    document.getElementById('mobileControls').style.display = 'none';
+                }
+                canvas.addEventListener('click', onClickCanvas, false); // Click/tap for removal mode
 
                 window.addEventListener('resize', onWindowResize, false);
 
@@ -673,8 +706,9 @@
 
                 const addButtons = [addSphereBtn, addBoxBtn, addCylinderBtn, addHumanBtn];
                 addButtons.forEach(button => {
+                    // Left-click (desktop) or single tap (mobile)
                     button.addEventListener('click', () => {
-                        const objectType = button.dataset.objectType; // Corrected from object-type
+                        const objectType = button.dataset.objectType;
                         if (meshes.length >= MAX_OBJECTS) {
                             showMessage(`Unable to add any more objects. Maximum objects allowed is ${MAX_OBJECTS}.`);
                             return;
@@ -684,13 +718,29 @@
                         sideMenuOverlay.style.display = 'none';
                     });
 
-                    button.addEventListener('contextmenu', (event) => {
-                        event.preventDefault();
-                        currentObjectTypeToAdd = button.dataset.objectType; // Corrected from object-type
-                        hideAllMenus();
-                        quantityInput.value = 1;
-                        quantityModal.style.display = 'flex';
-                    });
+                    // Right-click (desktop) or long press (mobile) for quantity modal
+                    if (isMobile) {
+                        let pressTimer;
+                        button.addEventListener('touchstart', (event) => {
+                            event.stopPropagation(); // Prevent canvas long press
+                            pressTimer = setTimeout(() => {
+                                currentObjectTypeToAdd = button.dataset.objectType;
+                                hideAllMenus();
+                                quantityInput.value = 1;
+                                quantityModal.style.display = 'flex';
+                            }, LONG_PRESS_THRESHOLD);
+                        });
+                        button.addEventListener('touchend', () => clearTimeout(pressTimer));
+                        button.addEventListener('touchmove', () => clearTimeout(pressTimer));
+                    } else {
+                        button.addEventListener('contextmenu', (event) => {
+                            event.preventDefault();
+                            currentObjectTypeToAdd = button.dataset.objectType;
+                            hideAllMenus();
+                            quantityInput.value = 1;
+                            quantityModal.style.display = 'flex';
+                        });
+                    }
                 });
 
                 addQuantityBtn.addEventListener('click', () => {
@@ -708,7 +758,7 @@
                         return;
                     }
                     for (let i = 0; i < quantity; i++) {
-                        createObject(currentObjectTypeToAdd, 1); // Pass 1 as count, as we are iterating
+                        createObject(currentObjectTypeToAdd, 1);
                     }
                     quantityModal.style.display = 'none';
                     sideMenu.classList.remove('open');
@@ -1102,6 +1152,7 @@
             camera.lookAt(cameraTarget);
         }
 
+        // --- Mouse Event Handlers (Desktop) ---
         function onMouseDown(event) {
             if (event.button === 0) {
                 isDragging = true;
@@ -1132,6 +1183,7 @@
                 previousMouseY = event.clientY;
             }
 
+            // Highlighting and tooltip for desktop
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
@@ -1205,8 +1257,167 @@
             updateCameraPosition();
         }
 
+        function onContextMenu(event) {
+            event.preventDefault();
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = `${event.clientX}px`;
+            contextMenu.style.top = `${event.clientY}px`;
+        }
+
+        // --- Touch Event Handlers (Mobile) ---
+        function onTouchStart(event) {
+            touchCount = event.touches.length;
+            hideTooltip(); // Hide tooltip immediately on touch
+
+            if (touchCount === 1) {
+                touchStartX = event.touches[0].clientX;
+                touchStartY = event.touches[0].clientY;
+                longPressTimer = setTimeout(() => {
+                    onContextMenu({ clientX: event.touches[0].clientX, clientY: event.touches[0].clientY, preventDefault: () => {} });
+                }, LONG_PRESS_THRESHOLD);
+            } else if (touchCount === 2) {
+                initialPinchDistance = getPinchDistance(event.touches);
+                clearTimeout(longPressTimer); // Cancel long press if two fingers are used
+            }
+        }
+
+        function onTouchMove(event) {
+            clearTimeout(longPressTimer); // Cancel long press if finger moves
+
+            if (event.touches.length === 1 && touchCount === 1) {
+                // One-finger drag for camera rotation
+                const deltaX = event.touches[0].clientX - touchStartX;
+                const deltaY = event.touches[0].clientY - touchStartY;
+
+                theta -= deltaX * 0.005;
+                phi -= deltaY * 0.005;
+
+                phi = Math.max(0.1, Math.min(Math.PI - 0.1, phi));
+                updateCameraPosition();
+
+                touchStartX = event.touches[0].clientX;
+                touchStartY = event.touches[0].clientY;
+
+                // Update mouse for raycasting for highlighting
+                mouse.x = (event.touches[0].clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.touches[0].clientY / window.innerHeight) * 2 + 1;
+                handleHighlighting();
+
+            } else if (event.touches.length === 2 && touchCount === 2) {
+                // Two-finger pinch for zoom
+                const currentPinchDistance = getPinchDistance(event.touches);
+                const deltaPinch = currentPinchDistance - initialPinchDistance;
+
+                cameraDistance -= deltaPinch * 0.05; // Adjust zoom sensitivity
+                cameraDistance = Math.max(5, Math.min(100, cameraDistance));
+                updateCameraPosition();
+
+                initialPinchDistance = currentPinchDistance;
+            }
+        }
+
+        function onTouchEnd(event) {
+            clearTimeout(longPressTimer);
+            const canvas = document.getElementById('physicsCanvas');
+
+            // If it was a single tap and not a drag, consider it a click for removal mode
+            if (event.changedTouches.length === 1 && touchCount === 1) {
+                const touch = event.changedTouches[0];
+                const deltaX = Math.abs(touch.clientX - touchStartX);
+                const deltaY = Math.abs(touch.clientY - touchStartY);
+
+                // Define a small threshold for a "tap" vs. a "drag"
+                const tapThreshold = 10;
+
+                if (deltaX < tapThreshold && deltaY < tapThreshold) {
+                    // This was a tap
+                    // Simulate a click event for onClickCanvas
+                    const simulatedClickEvent = {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY,
+                        button: 0, // Left mouse button equivalent
+                        preventDefault: () => {}
+                    };
+                    onClickCanvas(simulatedClickEvent);
+                }
+            }
+            touchCount = 0; // Reset touch count
+            // Ensure highlight is removed if not in remove mode
+            if (!removeModeActive && highlightedObject) {
+                const originalMaterial = originalMaterials.get(highlightedObject.uuid);
+                if (originalMaterial) {
+                    highlightedObject.material = originalMaterial;
+                }
+                highlightedObject = null;
+                originalMaterials.clear();
+            }
+        }
+
+        function getPinchDistance(touches) {
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function handleHighlighting() {
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(meshes, true);
+
+            let newHoveredMesh = null;
+            if (intersects.length > 0) {
+                for (let i = 0; i < intersects.length; i++) {
+                    const intersectedMesh = intersects[i].object;
+                    let currentMesh = intersectedMesh;
+                    while (currentMesh && !meshes.includes(currentMesh)) {
+                        currentMesh = currentMesh.parent;
+                    }
+                    if (currentMesh && meshes.includes(currentMesh)) {
+                        newHoveredMesh = currentMesh;
+                        break;
+                    }
+                }
+            }
+
+            if (newHoveredMesh !== currentHoveredMesh) {
+                if (currentHoveredMesh && !removeModeActive) {
+                    const originalMaterial = originalMaterials.get(currentHoveredMesh.uuid);
+                    if (originalMaterial) {
+                        currentHoveredMesh.material = originalMaterial;
+                    }
+                }
+                clearTimeout(meshHoverTimer);
+                hideTooltip();
+
+                currentHoveredMesh = newHoveredMesh;
+
+                if (currentHoveredMesh) {
+                    meshHoverTimer = setTimeout(() => {
+                        if (currentHoveredMesh && currentHoveredMesh.userData && currentHoveredMesh.userData.name) {
+                            // Use the last known touch/mouse coordinates for tooltip position
+                            const x = isMobile ? touchStartX : mouse.x * window.innerWidth / 2 + window.innerWidth / 2;
+                            const y = isMobile ? touchStartY : -mouse.y * window.innerHeight / 2 + window.innerHeight / 2;
+                            showTooltip(currentHoveredMesh.userData.name, x, y);
+                        }
+                    }, 2000);
+
+                    if (removeModeActive) {
+                        if (!originalMaterials.has(currentHoveredMesh.uuid)) {
+                            originalMaterials.set(currentHoveredMesh.uuid, currentHoveredMesh.material);
+                        }
+                        currentHoveredMesh.material = highlightMaterial;
+                    }
+                }
+            } else if (currentHoveredMesh && removeModeActive) {
+                if (!originalMaterials.has(currentHoveredMesh.uuid)) {
+                    originalMaterials.set(currentHoveredMesh.uuid, currentHoveredMesh.material);
+                }
+                currentHoveredMesh.material = highlightMaterial;
+            }
+            highlightedObject = currentHoveredMesh;
+        }
+
         function onClickCanvas(event) {
-            if (removeModeActive && event.button === 0) {
+            if (removeModeActive) {
                 mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
                 mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
@@ -1243,13 +1454,6 @@
                     }
                 }
             }
-        }
-
-        function onContextMenu(event) {
-            event.preventDefault();
-            contextMenu.style.display = 'block';
-            contextMenu.style.left = `${event.clientX}px`;
-            contextMenu.style.top = `${event.clientY}px`;
         }
 
         function toggleRemoveMode() {

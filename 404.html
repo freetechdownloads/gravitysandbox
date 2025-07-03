@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #282c34; /* Dark background matching the simulator */
+            color: #e0e0e0; /* Light text color */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="bg-gray-800 p-8 md:p-12 rounded-xl shadow-lg max-w-md w-full text-center border-2 border-gray-700">
+        <h1 class="text-6xl md:text-8xl font-bold text-blue-400 mb-4 animate-bounce">
+            404
+        </h1>
+        <h2 class="text-2xl md:text-3xl font-semibold text-gray-200 mb-6">
+            Page Not Found
+        </h2>
+        <p class="text-lg text-gray-300 mb-8">
+            Oops! It looks like the page you're trying to reach doesn't exist in our Gravity Sandbox.
+        </p>
+        <a href="/" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+            Go back to the Sandbox
+        </a>
+    </div>
+</body>
+</html>

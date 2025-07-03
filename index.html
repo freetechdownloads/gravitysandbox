@@ -227,6 +227,30 @@
             background-color: #5a5f68;
             transform: none; /* No transform on hover for menu items */
         }
+
+        #uploadChoiceModal .modal-content {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 25px;
+        }
+
+        #uploadChoiceModal button {
+            background-color: #61dafb;
+            color: #282c34;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        #uploadChoiceModal button:hover {
+            background-color: #4dc1e8;
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
@@ -291,6 +315,16 @@
         </div>
     </div>
 
+    <!-- Upload Choice Modal -->
+    <div id="uploadChoiceModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeUploadChoiceModalBtn">&times;</span>
+            <h2>Choose Upload Type</h2>
+            <button id="uploadSaveFileBtn">Upload Save File (.json)</button>
+            <button id="import3DModelBtn">Import 3D Model (.gltf, .glb)</button>
+        </div>
+    </div>
+
     <div id="sideMenuOverlay"></div>
     <div id="sideMenu">
         <span class="close-button" id="closeSideMenuBtn">&times;</span>
@@ -340,8 +374,13 @@
         <button id="saveAs3DModelBtn">Save Scene State (.json)</button>
     </div>
 
+    <!-- Hidden file input for 3D model upload -->
+    <input type="file" id="fileInput" style="display: none;">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+    <!-- GLTFLoader for Three.js -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
     <script>
         // Global variables for Three.js and Cannon.js
@@ -371,6 +410,10 @@
         let closeModalBtn;
         let geminiModal;
         let closeGeminiModalBtn;
+        let uploadChoiceModal; // New upload choice modal
+        let closeUploadChoiceModalBtn; // Close button for upload choice modal
+        let uploadSaveFileBtn; // Button to upload save file
+        let import3DModelBtn; // Button to import 3D model
         let menuButton;
         let addItemsButton;
         let removeItemsButton;
@@ -386,6 +429,7 @@
         let contextMenu;
         let clearAllObjectsBtn;
         let saveAs3DModelBtn;
+        let fileInput; // Reference to the hidden file input
 
         // Mode flags
         let removeModeActive = false;
@@ -397,6 +441,10 @@
                 closeModalBtn = document.getElementById('closeModalBtn');
                 geminiModal = document.getElementById('geminiModal');
                 closeGeminiModalBtn = document.getElementById('closeGeminiModalBtn');
+                uploadChoiceModal = document.getElementById('uploadChoiceModal'); // Get new modal
+                closeUploadChoiceModalBtn = document.getElementById('closeUploadChoiceModalBtn'); // Get close button
+                uploadSaveFileBtn = document.getElementById('uploadSaveFileBtn'); // Get save file button
+                import3DModelBtn = document.getElementById('import3DModelBtn'); // Get import 3D model button
                 menuButton = document.getElementById('menuButton');
                 addItemsButton = document.getElementById('addItemsButton');
                 removeItemsButton = document.getElementById('removeItemsButton');
@@ -412,6 +460,7 @@
                 contextMenu = document.getElementById('contextMenu');
                 clearAllObjectsBtn = document.getElementById('clearAllObjectsBtn');
                 saveAs3DModelBtn = document.getElementById('saveAs3DModelBtn');
+                fileInput = document.getElementById('fileInput'); // Get reference to the hidden file input
 
                 // Ensure all modals are hidden on load
                 hideAllMenus();
@@ -497,6 +546,7 @@
 
                 closeModalBtn.addEventListener('click', () => { controlsModal.style.display = 'none'; });
                 closeGeminiModalBtn.addEventListener('click', () => { geminiModal.style.display = 'none'; });
+                closeUploadChoiceModalBtn.addEventListener('click', () => { uploadChoiceModal.style.display = 'none'; }); // Close upload choice modal
 
                 window.addEventListener('click', (event) => {
                     if (event.target == controlsModal) {
@@ -504,6 +554,9 @@
                     }
                     if (event.target == geminiModal) {
                         geminiModal.style.display = 'none';
+                    }
+                    if (event.target == uploadChoiceModal) { // Close upload choice modal if clicking outside
+                        uploadChoiceModal.style.display = 'none';
                     }
                 });
 
@@ -542,11 +595,26 @@
                     sideMenuOverlay.style.display = 'none';
                 });
 
+                // --- Upload 3D Button now opens the choice modal ---
                 upload3dBtn.addEventListener('click', () => {
-                    alert('Upload 3D functionality is complex and requires specialized loaders (e.g., GLTFLoader for .gltf/.glb files) and potentially a file input element. This basic simulator does not include full 3D model import capabilities.');
-                    sideMenu.classList.remove('open');
-                    sideMenuOverlay.style.display = 'none';
+                    hideAllMenus();
+                    uploadChoiceModal.style.display = 'flex';
                 });
+
+                // Event listeners for the new upload choice buttons
+                uploadSaveFileBtn.addEventListener('click', () => {
+                    fileInput.accept = '.json'; // Set accept to JSON files
+                    fileInput.click();
+                    uploadChoiceModal.style.display = 'none'; // Hide choice modal
+                });
+
+                import3DModelBtn.addEventListener('click', () => {
+                    fileInput.accept = '.gltf, .glb'; // Set accept to GLTF/GLB files
+                    fileInput.click();
+                    uploadChoiceModal.style.display = 'none'; // Hide choice modal
+                });
+
+                fileInput.addEventListener('change', handleFileUpload);
 
                 removeItemsButton.addEventListener('click', toggleRemoveMode);
 
@@ -566,12 +634,215 @@
                     }
                 });
 
-                console.log("Simulator initialized successfully."); // Added for debugging
+                console.log("Simulator initialized successfully.");
 
             } catch (error) {
                 console.error("Error during initialization:", error);
             }
         }
+
+        /**
+         * Handles uploaded files.
+         * For .json files, it attempts to load a scene state.
+         * For .gltf/.glb files, it attempts to load a 3D model.
+         * @param {Event} event - The change event from the file input.
+         */
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            const fileName = file.name.toLowerCase();
+
+            if (fileName.endsWith('.json')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const sceneData = JSON.parse(e.target.result);
+                        loadSceneState(sceneData);
+                        console.log("Loaded scene state from JSON file.");
+                    } catch (error) {
+                        console.error("Error parsing JSON file:", error);
+                        alert("Error loading JSON scene state. Please ensure it's a valid scene state file.");
+                    }
+                };
+                reader.onerror = (e) => {
+                    console.error("Error reading file:", e);
+                    alert("Error reading file. Please try again.");
+                };
+                reader.readAsText(file);
+            } else if (fileName.endsWith('.gltf') || fileName.endsWith('.glb')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const loader = new THREE.GLTFLoader();
+                        loader.parse(e.target.result, '', (gltf) => {
+                            clearAllObjects(); // Clear existing objects before loading new model
+                            const model = gltf.scene;
+
+                            // Calculate bounding box to center and scale the model
+                            const box = new THREE.Box3().setFromObject(model);
+                            const size = box.getSize(new THREE.Vector3());
+                            const center = box.getCenter(new THREE.Vector3());
+
+                            // Normalize model size to fit within a reasonable range (e.g., max dimension 5 units)
+                            const maxDim = Math.max(size.x, size.y, size.z);
+                            const scale = 5 / maxDim;
+                            model.scale.set(scale, scale, scale);
+
+                            // Recalculate box and center after scaling
+                            box.setFromObject(model);
+                            center.copy(box.getCenter(new THREE.Vector3()));
+
+                            // Adjust position so the model rests on the ground (Y=0)
+                            // Assuming ground is at Y=0 and model's lowest point should be there
+                            model.position.y -= center.y - (box.min.y - model.position.y); // Adjust to sit on ground
+                            model.position.x -= center.x; // Center horizontally
+                            model.position.z -= center.z; // Center depth-wise
+
+                            // Give the model a random initial height above ground
+                            model.position.y += 5 + Math.random() * 5;
+
+                            model.traverse((child) => {
+                                if (child.isMesh) {
+                                    child.castShadow = true;
+                                    child.receiveShadow = true;
+                                    // Ensure material is suitable for lighting
+                                    if (child.material.isMeshStandardMaterial || child.material.isMeshPhysicalMaterial) {
+                                        // Keep as is
+                                    } else {
+                                        // Convert to a basic Lambert material if not PBR, to interact with lights
+                                        child.material = new THREE.MeshLambertMaterial({
+                                            color: child.material.color || new THREE.Color(0xcccccc),
+                                            map: child.material.map,
+                                            // Copy other properties if needed
+                                        });
+                                    }
+                                }
+                            });
+
+                            scene.add(model);
+                            meshes.push(model);
+
+                            // Create a simplified Cannon.js body for the imported model
+                            // Using a bounding box for physics approximation
+                            const physicsBoxSize = new CANNON.Vec3(size.x * scale / 2, size.y * scale / 2, size.z * scale / 2);
+                            const body = new CANNON.Body({ mass: 10, shape: new CANNON.Box(physicsBoxSize) });
+                            body.position.copy(model.position);
+                            body.quaternion.copy(model.quaternion); // Initial orientation
+                            world.addBody(body);
+                            bodies.push(body);
+
+                            console.log("Loaded 3D model:", gltf);
+                            alert("3D model loaded successfully!");
+
+                        }, undefined, (error) => {
+                            console.error("Error loading GLTF/GLB model:", error);
+                            alert("Error loading 3D model. Please ensure it's a valid .gltf or .glb file.");
+                        });
+                    } catch (error) {
+                        console.error("Error processing GLTF/GLB file:", error);
+                        alert("Error processing 3D model file. See console for details.");
+                    }
+                };
+                reader.onerror = (e) => {
+                    console.error("Error reading file:", e);
+                    alert("Error reading file. Please try again.");
+                };
+                reader.readAsArrayBuffer(file); // Read as ArrayBuffer for GLTF/GLB
+            } else {
+                alert(`Unsupported file type: ${file.type}. Please select a .json, .gltf, or .glb file.`);
+                console.log("Unsupported file content:", file.name);
+            }
+            // Clear the file input value to allow re-uploading the same file
+            event.target.value = '';
+        }
+
+        /**
+         * Loads a scene state from a given data array.
+         * Clears current scene and adds objects based on the data.
+         * @param {Array<Object>} sceneData - An array of object data (type, position, quaternion).
+         */
+        function loadSceneState(sceneData) {
+            clearAllObjects(); // Clear existing objects before loading new ones
+
+            sceneData.forEach(objData => {
+                let mesh;
+                let body;
+                const mass = 1; // Default mass for loaded objects
+                const color = new THREE.Color(Math.random(), Math.random(), Math.random());
+                const material = new THREE.MeshLambertMaterial({ color: color });
+
+                const position = new CANNON.Vec3(objData.position.x, objData.position.y, objData.position.z);
+                const quaternion = new CANNON.Quaternion(objData.quaternion.x, objData.quaternion.y, objData.quaternion.z, objData.quaternion.w);
+
+                switch (objData.type) {
+                    case 'sphere':
+                        const sphereRadius = 1;
+                        mesh = new THREE.Mesh(new THREE.SphereGeometry(sphereRadius, 32, 32), material);
+                        body = new CANNON.Body({ mass: mass, shape: new CANNON.Sphere(sphereRadius) });
+                        break;
+                    case 'box':
+                        const boxSize = 2;
+                        mesh = new THREE.Mesh(new THREE.BoxGeometry(boxSize, boxSize, boxSize), material);
+                        body = new CANNON.Body({ mass: mass, shape: new CANNON.Box(new CANNON.Vec3(boxSize / 2, boxSize / 2, boxSize / 2)) });
+                        break;
+                    case 'cylinder':
+                        const cylinderRadiusTop = 1;
+                        const cylinderRadiusBottom = 1;
+                        const cylinderHeight = 2;
+                        const cylinderSegments = 32;
+                        mesh = new THREE.Mesh(new THREE.CylinderGeometry(cylinderRadiusTop, cylinderRadiusBottom, cylinderHeight, cylinderSegments), material);
+                        body = new CANNON.Body({ mass: mass, shape: new CANNON.Cylinder(cylinderRadiusTop, cylinderRadiusBottom, cylinderHeight, cylinderSegments) });
+                        break;
+                    case 'human':
+                        const humanHeight = 3;
+                        const humanRadius = 0.5;
+                        const humanMass = 5;
+
+                        const humanBodyGeometry = new THREE.CylinderGeometry(humanRadius, humanRadius, humanHeight - humanRadius * 2, 32);
+                        const humanHeadGeometry = new THREE.SphereGeometry(humanRadius, 32, 32);
+                        const humanBodyMaterial = new THREE.MeshLambertMaterial({ color: color });
+                        const humanHeadMaterial = new THREE.MeshLambertMaterial({ color: new THREE.Color(Math.random(), Math.random(), Math.random()) });
+
+                        const humanBodyMesh = new THREE.Mesh(humanBodyGeometry, humanBodyMaterial);
+                        const humanHeadMesh = new THREE.Mesh(humanHeadGeometry, humanHeadMaterial);
+
+                        humanHeadMesh.position.y = (humanHeight / 2) - humanRadius + (humanRadius / 2);
+                        humanBodyMesh.position.y = (humanRadius - humanHeight / 2);
+
+                        mesh = new THREE.Group();
+                        mesh.add(humanBodyMesh);
+                        mesh.add(humanHeadMesh);
+                        mesh.castShadow = true;
+
+                        const humanCapsuleShape = new CANNON.Cylinder(humanRadius, humanRadius, humanHeight, 32);
+                        body = new CANNON.Body({ mass: humanMass, shape: humanCapsuleShape });
+                        break;
+                    default:
+                        console.warn("Unknown object type in loaded data:", objData.type);
+                        return; // Skip unknown types
+                }
+
+                mesh.castShadow = true;
+                scene.add(mesh);
+                meshes.push(mesh);
+                if (mesh.isGroup) {
+                    mesh.children.forEach(child => {
+                        originalMaterials.set(child.uuid, child.material);
+                    });
+                } else {
+                    originalMaterials.set(mesh.uuid, material);
+                }
+
+                body.position.copy(position);
+                body.quaternion.copy(quaternion);
+                world.addBody(body);
+                bodies.push(body);
+            });
+        }
+
 
         /**
          * Hides all active UI menus/modals.
@@ -580,10 +851,12 @@
             // Check if elements are defined before trying to access their style property
             if (controlsModal) controlsModal.style.display = 'none';
             if (geminiModal) geminiModal.style.display = 'none';
+            if (uploadChoiceModal) uploadChoiceModal.style.display = 'none'; // Hide the new modal
             if (sideMenu) sideMenu.classList.remove('open');
             if (sideMenuOverlay) sideMenuOverlay.style.display = 'none';
             if (contextMenu) contextMenu.style.display = 'none';
-            if (removeModeActive) toggleRemoveMode(); // Deactivate remove mode
+            // IMPORTANT: Do NOT call toggleRemoveMode() here. It should only be called by its button.
+            // If removeModeActive is true and we're just hiding other menus, keep removeModeActive true.
         }
 
         /**
@@ -593,7 +866,24 @@
             removeModeActive = !removeModeActive;
             if (removeModeActive) {
                 removeItemsButton.classList.add('active');
-                hideAllMenus();
+                // When activating remove mode, hide other menus, but don't re-toggle removeModeActive
+                if (sideMenu.classList.contains('open')) {
+                    sideMenu.classList.remove('open');
+                    sideMenuOverlay.style.display = 'none';
+                }
+                if (controlsModal.style.display === 'flex') {
+                    controlsModal.style.display = 'none';
+                }
+                if (geminiModal.style.display === 'flex') {
+                    geminiModal.style.display = 'none';
+                }
+                if (uploadChoiceModal.style.display === 'flex') { // Hide upload choice modal
+                    uploadChoiceModal.style.display = 'none';
+                }
+                if (contextMenu.style.display === 'block') {
+                    contextMenu.style.display = 'none';
+                }
+
             } else {
                 removeItemsButton.classList.remove('active');
                 if (highlightedObject) {
@@ -829,6 +1119,7 @@
                     for (const intersect of intersects) {
                         let currentObject = intersect.object;
                         while (currentObject) {
+                            // Find the top-level mesh that is directly in our 'meshes' array
                             if (meshes.includes(currentObject)) {
                                 newHighlighted = currentObject;
                                 break;
@@ -839,6 +1130,7 @@
                     }
 
                     if (newHighlighted && newHighlighted !== highlightedObject) {
+                        // Restore previous highlighted object's material
                         if (highlightedObject) {
                             if (highlightedObject.isGroup) {
                                 highlightedObject.children.forEach(child => {
@@ -850,6 +1142,7 @@
                                 highlightedObject.material = originalMaterials.get(highlightedObject.uuid);
                             }
                         }
+                        // Apply highlight to new object
                         highlightedObject = newHighlighted;
                         if (highlightedObject.isGroup) {
                             highlightedObject.children.forEach(child => {
@@ -866,6 +1159,7 @@
                         }
                     }
                 } else {
+                    // No intersection, remove highlight if any
                     if (highlightedObject) {
                         if (highlightedObject.isGroup) {
                             highlightedObject.children.forEach(child => {
@@ -879,7 +1173,7 @@
                     }
                     highlightedObject = null;
                 }
-            } else { // Normal camera mode (no humanoid mode)
+            } else { // Normal camera mode
                 if (isDragging) {
                     const deltaX = event.clientX - previousMouseX;
                     const deltaY = event.clientY - previousMouseY;
@@ -896,6 +1190,7 @@
                     previousMouseX = event.clientX;
                     previousMouseY = event.clientY;
                 }
+                // Ensure highlight is removed when not in remove mode
                 if (highlightedObject) {
                     if (highlightedObject.isGroup) {
                         highlightedObject.children.forEach(child => {
@@ -913,7 +1208,6 @@
 
         function onMouseWheel(event) {
             event.preventDefault();
-            // Zoom is always active now, no humanoid mode check
             const zoomSpeed = 0.1;
             cameraDistance += event.deltaY * zoomSpeed;
 
@@ -935,6 +1229,7 @@
                     for (const intersect of intersects) {
                         let currentObject = intersect.object;
                         while (currentObject) {
+                            // Find the top-level mesh that is directly in our 'meshes' array
                             if (meshes.includes(currentObject)) {
                                 objectToRemove = currentObject;
                                 break;
@@ -955,6 +1250,7 @@
                             meshes.splice(index, 1);
                             bodies.splice(index, 1);
 
+                            // Dispose of geometry and material to prevent memory leaks
                             if (objectToRemove.isGroup) {
                                 objectToRemove.children.forEach(child => {
                                     originalMaterials.delete(child.uuid);
@@ -984,10 +1280,20 @@
                 world.step(1 / 60);
 
                 for (let i = 0; i < meshes.length; i++) {
+                    // Important: If a loaded GLTF model has its own internal structure,
+                    // directly copying position/quaternion to the top-level mesh might not
+                    // correctly update its visual children. A more robust solution would be
+                    // to ensure the GLTF model's root is the mesh[i] and its children
+                    // are relative to it, or to update children individually if needed.
+                    // For now, this assumes the physics body corresponds to the mesh's root.
                     meshes[i].position.copy(bodies[i].position);
                     meshes[i].quaternion.copy(bodies[i].quaternion);
 
-                    if (meshes[i].isGroup) { // Check if it's a human (group)
+                    if (meshes[i].isGroup && meshes[i].userData.isHuman) { // Check if it's a human (group)
+                        // Adjust humanoid mesh position based on its internal structure
+                        // This assumes the Cannon body's position is at the base of the capsule
+                        // and the Three.js group's origin is also at the base.
+                        // If the human model is centered on its origin, this adjustment might need tweaking.
                         meshes[i].position.y -= (meshes[i].children[0].geometry.parameters.height / 2);
                     }
                 }
